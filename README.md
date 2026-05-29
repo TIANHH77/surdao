@@ -12,21 +12,17 @@
 
 ### *Infraestructura descentralizada de seguimiento.*
 
-Este repositorio contiene la arquitectura inicial del **Centro de Mando de SUR DAO**, una plataforma web interactiva diseñada para rastrear, procesar y exponer de forma analítica y georreferenciada las fallas estructurales dentro del sistema chileno.
+Este repositorio contiene la arquitectura inicial del Centro de Mando de SUR DAO, una plataforma web interactiva diseñada para rastrear, procesar y exponer de forma analítica y georreferenciada las fallas estructurales del sistema. Esta fase inicial audita el territorio de Chile, pero la arquitectura está diseñada para escalar próximamente a Argentina y, con la fuerza de la comunidad, a todo el Hemisferio Sur.
 
 > ⚠️ **Fase 0: Educación** > Este lanzamiento representa únicamente la **Fase 0** de nuestro roadmap operativo, enfocada exclusivamente en el **Sistema Educativo Chileno**. En próximas etapas, la infraestructura escalará para integrar nuevas bases de datos y auditar otros sectores clave del territorio nacional, proximamente Salud.
-
----
 
 
 ## ⚙️ Arquitectura y Stack Tecnológico
 Para garantizar el procesamiento in-memory de bases de datos masivas sin latencia en la nube, el Centro de Mando utiliza:
 * **Frontend / UI:** `Streamlit`
-* **Procesamiento de Datos Masivos:** `Polars` (Archivos `.parquet` de alto rendimiento), `Pandas`.
+* **Procesamiento de Datos Masivos:** `Pandas` y `PyArrow` (Motor nativo de alto rendimiento para archivos `.parquet`).
 * **Motor Geoespacial:** `PyDeck` (Cartografía termográfica en capa *Light Mode*).
 * **Consultas Históricas (Pre-procesamiento):** `DuckDB`
-## 🗄️ Fuentes de Datos (Data Lake)
-
 
 
 Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya existe. La información utilizada en esta **Fase 0** proviene íntegramente de registros oficiales gubernamentales procesados para su visualización masiva:
@@ -46,18 +42,6 @@ Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya e
 
 ## 📚 La Visión: Hacia la Gobernanza Descentralizada (Fase 1 ➔ Fase 2)
 Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educativo no se arregla solo mirándolo. 
-
-La **Fase 2** de SUR DAO propone una **Arquitectura de Espiral** y un modelo de **Economía Recíproca y Custodia Mutua**. A través de una infraestructura descentralizada, buscamos reconocer y respaldar ("Proof of Contribution") el trabajo invisible de quienes sostienen la red educativa desde las trincheras, operando en lo que llamamos la *Capa de Sombra*.
-
-Si quieres entender el rediseño sistémico completo detrás de este código, te invitamos a explorar nuestros manifiestos fundacionales en la carpeta `/manifestos`:
-1. `#1 Gobernanza Descentralizada, Economía Recíproca y Custodia Mutua`
-2. `#2 Trayectorias Acompañadas`
-3. `#6 Democracia Descentralizada DAO`
-
----
-*No pedimos permiso para auditar, construimos los datos que exponen la realidad. El código es libre y el control territorial es ciudadano.* 🐋
-
----
 
 ## 🖥️ Terminales de Auditoría (Estructura de la App)
 
@@ -82,7 +66,19 @@ El dashboard actual unifica el análisis en 4 pestañas tácticas interactivas:
   * 🟡 **Amarillo (Ratio 21 - 30):** Zona de Alerta. Alta carga administrativa, estrés docente latente y gestión masiva de aula.
   * 🔴 **Rojo Sangre (Ratio > 30):** Colapso Estructural. El sistema supera los límites de resiliencia. Espacios de contención de crisis, no de aprendizaje.
 
+La **Fase 2** de SUR DAO propone una **Arquitectura de Espiral** y un modelo de **Economía Recíproca y Custodia Mutua**. A través de una infraestructura descentralizada, buscamos reconocer y respaldar ("Proof of Contribution") el trabajo invisible de quienes sostienen la red educativa desde las trincheras, operando en lo que llamamos la *Capa de Sombra*, toda esa data no puede quedar oculta entre los promedios.
+
+> 🚨 **Próximo Despliegue: El Código de la Educación Superior**
+> Nuestros hallazgos sobre la educación superior se publicarán pronto en este mismo espacio. Como adelanto: en el caso de Chile, el sistema de convalidación de créditos y competencias sigue respondiendo a lógicas de 1983. Su "actualización" en 2018 no es más que maquillaje institucional para ocultar su mayor falla estructural: **el sistema ve matrículas, no trayectorias educativas.**
+
+
+Si quieres entender el rediseño sistémico completo detrás de este código, te invitamos a explorar nuestros manifiestos fundacionales en la carpeta `/manifestos`:
+1. `#1 Gobernanza Descentralizada, Economía Recíproca y Custodia Mutua`
+2. `#2 Trayectorias Acompañadas`
+3. `#3 Democracia Descentralizada DAO`
+
 ---
+*No pedimos permiso para auditar, construimos los datos que exponen la realidad. El código es libre y el control territorial es ciudadano.* 
 
 ## 🗺️ Estructura del Repositorio
 
