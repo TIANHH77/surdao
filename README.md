@@ -5,7 +5,7 @@
 #  Centro de Mando: Auditoría Ciudadana Territorial
 
 <p align="center">
-  <a href="https://tu-enlace-de-streamlit.app" target="_blank">
+  <a href="https://surdao.streamlit.app/" target="_blank">
     <img src="https://img.shields.io/badge/🚀_Probar_Centro_de_Mando_en_Vivo-FF4B4B?style=for-the-badge" alt="Live Demo">
   </a>
 </p>
