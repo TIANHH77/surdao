@@ -2,7 +2,7 @@
   <img src="assets/surdao.svg" alt="SUR DAO Logo" width="250">
 </p>
 
-# 🐋 SUR DAO | Centro de Mando: Auditoría Ciudadana Territorial
+#  Centro de Mando: Auditoría Ciudadana Territorial
 
 ### *Infraestructura descentralizada de seguimiento.*
 
