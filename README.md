@@ -25,7 +25,7 @@ Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya e
 * **Sistema de Admisión Escolar (SAE)** (2016 - 2023)
 * **Practicantes y titulados Técnico Profesional** (2013 - 2024)
 * **Registro Público Digital – Anótate en la Lista** (2025)
-* **Directorio de establecimientos Educacionales** (1992-2025)
+* **Directorio de Establecimientos Educacionales** (1992-2025)
 
 ---
 
