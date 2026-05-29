@@ -42,11 +42,9 @@ Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya e
 
 ## 📚 La Visión: Hacia la Gobernanza Descentralizada (Fase 1 ➔ Fase 2)
 Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educativo no se arregla solo mirándolo. 
-
-## 🖥️ Terminales de Auditoría (Estructura de la App)
-
 El dashboard actual unifica el análisis en 4 pestañas tácticas interactivas:
 
+## 🖥️ Terminales de Auditoría (Estructura de la App)
 ### 📉 1. Histórico Fuga
 * **Propósito:** Muestra la evolución estructural de la pérdida de alumnos de excelencia académica en Chile entre los años 2012 y 2023.
 * **Métricas:** Volumen de cerebros perdidos y tasa porcentual de fuga sistémica conectada a una infraestructura DuckDB.
