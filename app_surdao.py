@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import polars as pl  
 import time
 import pydeck as pdk 
 
@@ -107,6 +106,7 @@ with tab3:
         st.error("No se encontró el archivo matriz_maestra_ratio_docentes.csv o está vacío.")
 
 # ==========================================
+# ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL
 # ==========================================
 with tab4:
@@ -114,14 +114,13 @@ with tab4:
     
     @st.cache_data
     def cargar_geo():
-        # CORRECCIÓN 3: RUTA RELATIVA A DATA/
-        return pl.read_parquet("data/matriz_final_geolocalizada.parquet")
+        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE (Más ligero, cero errores)
+        return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
     
     try:
-        df_mapa = cargar_geo()
-        df_pd = df_mapa.to_pandas()
+        df_pd = cargar_geo()
         
-        anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_mapa['Anio'].unique(), reverse=True))
+        anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_pd['Anio'].unique(), reverse=True))
         
         df_filtrado = df_pd[df_pd['Anio'] == anio_mapa].copy()
         
