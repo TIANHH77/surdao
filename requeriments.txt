@@ -1,6 +1,6 @@
 streamlit
 pandas
-polars
+pyarrow
 pydeck
 requests
 pillow==11.0.0
