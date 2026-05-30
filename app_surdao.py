@@ -105,9 +105,8 @@ with tab3:
     else:
         st.error("No se encontró el archivo matriz_maestra_ratio_docentes.csv o está vacío.")
 
-# ==========================================
-# ==========================================
-# ==========================================
+
+# # ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
 # ==========================================
 with tab4:
@@ -115,7 +114,7 @@ with tab4:
     
     @st.cache_data
     def cargar_geo():
-        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE (Más ligero, cero errores)
+        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE
         return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
     
     try:
@@ -141,7 +140,7 @@ with tab4:
         # ---------------------------------------------------------
         df_criticos = df_filtrado[df_filtrado['Ratio_Alumnos_Docente'] > 20].copy()
         
-        # Validamos cómo se llaman tus columnas en el Parquet (Ajusta los nombres si son distintos)
+        # Validamos cómo se llaman tus columnas en el Parquet (Ajusta si son distintos)
         col_notas = "Promedio_Notas" if "Promedio_Notas" in df_criticos.columns else "Ratio_Alumnos_Docente"
         col_variacion = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_criticos.columns else "Ratio_Alumnos_Docente"
         
@@ -185,17 +184,17 @@ with tab4:
             pickable=True,
         )
 
-      capa_top50 = pdk.Layer(
+        capa_top50 = pdk.Layer(
             "ScatterplotLayer",
             df_top50,
             get_position='[LONGITUD, LATITUD]',
             get_fill_color=[255, 0, 0, 255], # Rojo puro intenso
-            get_line_color=[0, 0, 0, 255],   # Borde negro
+            get_line_color=[0, 0, 0, 255],   # Borde negro para que resalten
             stroked=True,
-            line_width_min_pixels=1,         # Borde un poco más fino
-            get_radius=350,                  # Bajamos el radio base (antes 800)
-            radius_min_pixels=4,             # Tamaño mínimo más sutil (antes 8)
-            radius_max_pixels=9,             # Tamaño máximo controlado (antes 15)
+            line_width_min_pixels=1,         # Borde fino y elegante
+            get_radius=350,                  # Tamaño ajustado para no ser grosero
+            radius_min_pixels=4,
+            radius_max_pixels=9,
             pickable=True,
         )
 
@@ -214,8 +213,7 @@ with tab4:
             st.markdown("#### 🚨 Top 50 Alertas")
             st.caption("Instituciones con mayor volatilidad.")
             
-            # Formateamos la tabla lateral para que sea fácil de leer
-           # Formateamos la tabla lateral dinámicamente para evitar columnas duplicadas
+            # Formateamos la tabla lateral dinámicamente para evitar columnas duplicadas
             columnas_tabla = ['Nombre_Colegio', 'Ratio_Alumnos_Docente']
             if col_variacion not in columnas_tabla:
                 columnas_tabla.append(col_variacion)
@@ -223,5 +221,14 @@ with tab4:
             df_mostrar = df_top50[columnas_tabla].copy()
             
             # Redondeamos decimales solo si la columna es numérica y existe
+            if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
+                df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2) 
+            
+            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
+
+    except Exception as e:
+        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
+
+e
             if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
                 df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2)
