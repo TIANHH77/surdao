@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/surdao.svg" alt="SUR DAO Logo" width="250">
-</p>
-
 
 <p align="center">
   <img src="assets/surdao.svg" alt="SUR DAO Logo" width="250">
