@@ -107,6 +107,7 @@ with tab3:
 
 
 # # ==========================================
+# ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
 # ==========================================
 with tab4:
@@ -228,7 +229,3 @@ with tab4:
 
     except Exception as e:
         st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
-
-e
-            if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
-                df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2)
