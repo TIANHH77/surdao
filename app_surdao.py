@@ -107,7 +107,8 @@ with tab3:
 
 # ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
@@ -121,7 +122,6 @@ with tab4:
         df_pd = cargar_geo()
         
         anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_pd['Anio'].unique(), reverse=True))
-        
         df_filtrado = df_pd[df_pd['Anio'] == anio_mapa].copy()
         
         def asignar_color(ratio):
@@ -136,22 +136,90 @@ with tab4:
                 
         df_filtrado['color'] = df_filtrado['Ratio_Alumnos_Docente'].apply(asignar_color)
 
-        st.pydeck_chart(pdk.Deck(
-            map_style="light", 
-            initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
-            layers=[
-                pdk.Layer(
-                    "ScatterplotLayer",
-                    df_filtrado, 
-                    get_position='[LONGITUD, LATITUD]',
-                    get_color='color', 
-                    get_radius=200,
-                    radius_min_pixels=1,
-                    radius_max_pixels=10,
-                    pickable=True,
-                ),
-            ],
-            tooltip={"text": "Colegio: {Nombre_Colegio}\nRatio: {Ratio_Alumnos_Docente}"}
-        ))
+        # ---------------------------------------------------------
+        # MAGIA NUEVA: Extrayendo los 50 más críticos (Rojo/Amarillo)
+        # ---------------------------------------------------------
+        df_criticos = df_filtrado[df_filtrado['Ratio_Alumnos_Docente'] > 20].copy()
+        
+        # Validamos cómo se llaman tus columnas en el Parquet (Ajusta los nombres si son distintos)
+        col_notas = "Promedio_Notas" if "Promedio_Notas" in df_criticos.columns else "Ratio_Alumnos_Docente"
+        col_variacion = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_criticos.columns else "Ratio_Alumnos_Docente"
+        
+        # Obtenemos los 50 con mayor variación/riesgo
+        df_top50 = df_criticos.nlargest(50, col_variacion)
+
+        # ---------------------------------------------------------
+        # CONFIGURACIÓN DEL TOOLTIP INTERACTIVO (HTML)
+        # ---------------------------------------------------------
+        tooltip_html = {
+            "html": f"""
+            <div style='font-family: sans-serif;'>
+                <b style='font-size: 15px;'>{{Nombre_Colegio}}</b><br/>
+                <hr style='margin: 5px 0; border-color: #555;'/>
+                🔴 <b>Ratio (Alumnos/Docente):</b> {{Ratio_Alumnos_Docente}}<br/>
+                📉 <b>Nota Promedio:</b> {{{col_notas}}}<br/>
+                ⚠️ <b>Variación (Riesgo):</b> {{{col_variacion}}}
+            </div>
+            """,
+            "style": {
+                "backgroundColor": "#2E2E2E",
+                "color": "white",
+                "border": "1px solid #FF4B4B",
+                "padding": "12px",
+                "borderRadius": "6px",
+                "boxShadow": "2px 2px 10px rgba(0,0,0,0.5)"
+            }
+        }
+
+        # ---------------------------------------------------------
+        # CAPAS DEL MAPA (General + Destacados Top 50)
+        # ---------------------------------------------------------
+        capa_general = pdk.Layer(
+            "ScatterplotLayer",
+            df_filtrado, 
+            get_position='[LONGITUD, LATITUD]',
+            get_color='color', 
+            get_radius=200,
+            radius_min_pixels=2,
+            radius_max_pixels=6,
+            pickable=True,
+        )
+
+        capa_top50 = pdk.Layer(
+            "ScatterplotLayer",
+            df_top50,
+            get_position='[LONGITUD, LATITUD]',
+            get_fill_color=[255, 0, 0, 255], # Rojo puro intenso
+            get_line_color=[0, 0, 0, 255],   # Borde negro para que resalten
+            stroked=True,
+            line_width_min_pixels=2,
+            get_radius=800, # Más grandes
+            radius_min_pixels=8,
+            radius_max_pixels=15,
+            pickable=True,
+        )
+
+        # Dividimos la pantalla: Mapa a la izquierda (70%), Lista Crítica a la derecha (30%)
+        col_mapa, col_lista = st.columns([2.5, 1])
+
+        with col_mapa:
+            st.pydeck_chart(pdk.Deck(
+                map_style="light", 
+                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=30), # Pitch 30 le da un leve efecto 3D
+                layers=[capa_general, capa_top50], # Ponemos ambas capas
+                tooltip=tooltip_html
+            ))
+            
+        with col_lista:
+            st.markdown("#### 🚨 Top 50 Alertas")
+            st.caption("Instituciones con mayor volatilidad.")
+            
+            # Formateamos la tabla lateral para que sea fácil de leer
+            df_mostrar = df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', col_variacion]].copy()
+            # Redondeamos decimales para que no se vea feo
+            df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2) 
+            
+            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
+
     except Exception as e:
-        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe en la carpeta 'data/'. Detalles: {e}")
+        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
