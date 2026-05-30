@@ -70,6 +70,7 @@ Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educati
 ## 🖥️ Terminales de Auditoría (Estructura de la App)
 ### 📉 1. Histórico Fuga
 * **Propósito:** Evolución estructural de la pérdida de alumnos de excelencia académica (2012-2023).
+* **Fuga de talentos del sistema educativo.
 
 ### ⚠️ 2. Escáner de Riesgo
 * **Propósito:** Detecta anomalías estadísticas en calificaciones escolares y volatilidad institucional.
