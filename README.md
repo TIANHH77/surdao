@@ -73,6 +73,7 @@ Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educati
 
 ### ⚠️ 2. Escáner de Riesgo
 * **Propósito:** Detecta anomalías estadísticas en calificaciones escolares y volatilidad institucional.
+* **Métricas:** Evalúa la desviación estándar del rendimiento. Identifica instituciones con comportamientos altamente volátiles que reflejan ecosistemas críticos.
 
 ### 👨‍🏫 3. Sobrecarga Docente
 * **Propósito:** Ranking anual de los 10 establecimientos con mayor colapso en la distribución de su planta docente.
