@@ -78,7 +78,16 @@ Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educati
 * **Propósito:** Ranking anual de los 10 establecimientos con mayor colapso en la distribución de su planta docente.
 
 ### 🌍 4. Auditoría Territorial (El Mapa Termográfico)
-* **Propósito:** Radar espacial con lógica de semáforo (🟢 Verde: Óptimo | 🟡 Amarillo: Alerta | 🔴 Rojo: Colapso).
+
+* **Propósito:** Traduce más de 120,000 registros tabulares en un radar espacial interactivo utilizando `PyDeck` en modo de alto contraste (`Light Mode`).
+
+* **Lógica Científica del Semáforo de Presión:**
+
+* 🟢 **Verde (Ratio ≤ 20):** Zona Óptima/Tolerable según estándares OCDE. Pedagogía viable y seguimiento personalizado.
+
+* 🟡 **Amarillo (Ratio 21 - 30):** Zona de Alerta. Alta carga administrativa, estrés docente latente y gestión masiva de aula.
+
+* 🔴 **Rojo Sangre (Ratio > 30):** Colapso Estructural. El sistema supera los límites de resiliencia. Espacios de contención de crisis, no de aprendizaje
 
 La **Fase 2** de SUR DAO propone una **Arquitectura de Espiral** y un modelo de **Economía Recíproca**. Buscamos reconocer ("Proof of Contribution") el trabajo invisible de quienes sostienen la red educativa desde la *Capa de Sombra*.
 
