@@ -185,17 +185,17 @@ with tab4:
             pickable=True,
         )
 
-        capa_top50 = pdk.Layer(
+      capa_top50 = pdk.Layer(
             "ScatterplotLayer",
             df_top50,
             get_position='[LONGITUD, LATITUD]',
             get_fill_color=[255, 0, 0, 255], # Rojo puro intenso
-            get_line_color=[0, 0, 0, 255],   # Borde negro para que resalten
+            get_line_color=[0, 0, 0, 255],   # Borde negro
             stroked=True,
-            line_width_min_pixels=2,
-            get_radius=800, # Más grandes
-            radius_min_pixels=8,
-            radius_max_pixels=15,
+            line_width_min_pixels=1,         # Borde un poco más fino
+            get_radius=350,                  # Bajamos el radio base (antes 800)
+            radius_min_pixels=4,             # Tamaño mínimo más sutil (antes 8)
+            radius_max_pixels=9,             # Tamaño máximo controlado (antes 15)
             pickable=True,
         )
 
@@ -215,11 +215,13 @@ with tab4:
             st.caption("Instituciones con mayor volatilidad.")
             
             # Formateamos la tabla lateral para que sea fácil de leer
-            df_mostrar = df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', col_variacion]].copy()
-            # Redondeamos decimales para que no se vea feo
-            df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2) 
+           # Formateamos la tabla lateral dinámicamente para evitar columnas duplicadas
+            columnas_tabla = ['Nombre_Colegio', 'Ratio_Alumnos_Docente']
+            if col_variacion not in columnas_tabla:
+                columnas_tabla.append(col_variacion)
+                
+            df_mostrar = df_top50[columnas_tabla].copy()
             
-            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
-
-    except Exception as e:
-        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
+            # Redondeamos decimales solo si la columna es numérica y existe
+            if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
+                df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2)
