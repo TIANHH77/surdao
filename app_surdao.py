@@ -118,32 +118,32 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA + TABLA TOP 50)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MODO RECUPERACIÓN)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     try:
-        # 1. Carga de datos
+        # Carga
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
         
-        # 2. Blindaje de tipos (INT64)
-        for df in [df_geo, df_ratios]:
-            df['RBD'] = df['RBD'].astype('int64')
-            df['Anio'] = df['Anio'].astype('int64')
+        # Blindaje básico
+        df_geo['RBD'] = df_geo['RBD'].astype('int64')
+        df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
+        df_geo['Anio'] = df_geo['Anio'].astype('int64')
+        df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
         
-        # 3. MERGE LIMPIO: Evitamos los sufijos _x y _y
+        # Merge y limpieza de nombres para evitar los _x
         df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left', suffixes=('', '_drop'))
-        # Borramos las columnas duplicadas que venían del segundo archivo
         df_completo = df_completo.loc[:, ~df_completo.columns.str.endswith('_drop')]
         
-        # 4. Filtro por año
-        anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df_completo['Anio'].unique(), reverse=True))
+        # Selector
+        anio_mapa = st.selectbox("Selecciona año:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # 5. Cálculo del Top 50
-        # Usamos Ratio_Alumnos_Docente porque es la columna que existe en tu CSV
+        # Cálculo Top 50 usando la columna limpia
         df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
         col_mapa, col_lista = st.columns([2.5, 1])
@@ -153,10 +153,8 @@ with tab4:
                 map_style="light",
                 initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
                 layers=[
-                    # Puntos base
                     pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_color=[50, 200, 100, 150], pickable=True),
-                    # Puntos Top 50 (rojos)
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
@@ -165,8 +163,7 @@ with tab4:
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            # Mostramos la data limpia
             st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
+        st.error(f"Error: {e}")
