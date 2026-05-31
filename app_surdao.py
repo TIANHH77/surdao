@@ -11,7 +11,8 @@ st.set_page_config(page_title="SUR DAO | Centro de Mando", page_icon="🐋", lay
 col_logo, col_titulo = st.columns([0.15, 0.85]) 
 
 with col_logo:
-    st.image(r"C:\PROYECTOS\streamlit\surdao.svg", width=180)
+    # CORRECCIÓN PARA LA NUBE: Ruta relativa para la imagen
+    st.image("surdao.svg", width=180)
 
 with col_titulo:
     # Estos espacios empujan el título hacia abajo para que quede a la altura de la base del logo
@@ -66,6 +67,7 @@ with tab2:
             st.dataframe(df_riesgo, use_container_width=True)
         except Exception as e:
             st.warning(f"No se encontró el escáner de riesgo para el año {anio_riesgo}. Verifica la carpeta 'data/'.")
+
 # ==========================================
 # PESTAÑA 3: CRISIS DE TALENTO DOCENTE (CASCADA HISTÓRICA)
 # ==========================================
@@ -77,8 +79,9 @@ with tab3:
     @st.cache_data
     def cargar_datos_docentes():
         try:
-            ruta_absoluta = r"C:\PROYECTOS\streamlit\talento_docente\matriz_maestra_ratio_docentes.csv"
-            return pd.read_csv(ruta_absoluta)
+            # CORRECCIÓN PARA LA NUBE: Ruta relativa
+            ruta_relativa = "data/matriz_maestra_ratio_docentes.csv"
+            return pd.read_csv(ruta_relativa)
         except:
             return pd.DataFrame()
             
@@ -117,6 +120,7 @@ with tab3:
 
 ## ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
+# VOLVEMOS A LA VERSIÓN ESTABLE ANTERIOR
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
