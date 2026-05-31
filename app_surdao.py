@@ -118,21 +118,39 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (CON SOBRECARGA DOCENTE)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (FULL DATA + RIESGO)
 # ==========================================
 with tab4:
-    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
+    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión y Riesgo")
     
     try:
-        # Cargamos el parquet que ya contiene los datos de sobrecarga
-        df = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
+        # 1. Cargamos el Parquet base
+        df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
+        df_geo['RBD'] = df_geo['RBD'].astype('int64')
+        df_geo['Anio'] = df_geo['Anio'].astype('int64')
         
-        # Filtro de año
-        anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df['Anio'].unique(), reverse=True))
-        df_filtrado = df[df['Anio'] == anio_mapa].copy()
+        # 2. Selector de año
+        anio_mapa = st.selectbox("Selecciona año para auditoría:", sorted(df_geo['Anio'].unique(), reverse=True))
         
-        # Top 50 Alertas por Ratio (Sobrecarga)
-        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
+        # 3. Cargamos el archivo de Riesgo específico para ese año
+        # Asumo que el archivo se llama 'volatilidad_riesgo_instituciones_2024.csv'
+        ruta_riesgo = f"data/volatilidad_riesgo_instituciones_{anio_mapa}.csv"
+        df_riesgo = pd.read_csv(ruta_riesgo)
+        df_riesgo['RBD'] = df_riesgo['RBD'].astype('int64') # Aseguramos formato
+        
+        # 4. MERGE LIMPIO: Unimos Riesgo con Geo
+        # suffixes=('', '_drop') hace que las columnas duplicadas se llamen '_drop'
+        df_completo = pd.merge(df_geo, df_riesgo, on=['RBD'], how='left', suffixes=('', '_drop'))
+        # Eliminamos inmediatamente las columnas '_drop' para que no haya _x ni _y
+        df_completo = df_completo.loc[:, ~df_completo.columns.str.endswith('_drop')]
+        
+        # Filtramos el año
+        df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
+        
+        # 5. Preparamos datos para Top 50
+        # Usamos 'Volatilidad_Rendimiento' si existe, si no, caemos a 'Ratio_Alumnos_Docente'
+        col_riesgo = 'Volatilidad_Rendimiento' if 'Volatilidad_Rendimiento' in df_filtrado.columns else 'Ratio_Alumnos_Docente'
+        df_top50 = df_filtrado.nlargest(50, col_riesgo)
 
         col_mapa, col_lista = st.columns([2.5, 1])
 
@@ -146,18 +164,15 @@ with tab4:
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                # TOOLTIP MEJORADO: Incluye datos de sobrecarga
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio Alumnos/Docente: {Ratio_Alumnos_Docente}<br/>Total Docentes: {Total_Docentes}<br/>Nota Promedio: {Promedio_Notas}"}
+                # TOOLTIP CON TODA LA DATA
+                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}<br/>Nota: {Promedio_Notas}<br/>Riesgo: {"+col_riesgo+"}"}
             ))
             
         with col_lista:
-            st.markdown("#### 🚨 Top 50 Alertas (Sobrecarga)")
-            # TABLA AMPLIADA: Incluye los datos de la Pestaña 3
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Total_Docentes', 'Promedio_Notas']], 
-                         hide_index=True, use_container_width=True, height=450)
+            st.markdown("#### 🚨 Top 50 Alertas")
+            # Mostrar tabla con todas las variables de riesgo
+            columnas = ['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Promedio_Notas', col_riesgo]
+            st.dataframe(df_top50[columnas], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
-
-    except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
+        st.error(f"Error cargando los datos de riesgo: {e}")
