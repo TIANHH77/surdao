@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import requests
 import time
-import pydeck as pdk # <--- Asegúrate de tener también esto para el mapa
+import pydeck as pdk 
 
 # Configuración de la página
 st.set_page_config(page_title="SUR DAO | Centro de Mando", page_icon="🐋", layout="wide")
@@ -11,7 +10,8 @@ st.set_page_config(page_title="SUR DAO | Centro de Mando", page_icon="🐋", lay
 col_logo, col_titulo = st.columns([0.15, 0.85]) 
 
 with col_logo:
-    st.image("assets/surdao.svg", width=180) # Esto busca dentro de la carpeta assets
+    # CORRECCIÓN 1: RUTA RELATIVA AL LOGO
+    st.image("assets/surdao.svg", width=180)
 
 with col_titulo:
     # Estos espacios empujan el título hacia abajo para que quede a la altura de la base del logo
@@ -37,10 +37,8 @@ with tab1:
     st.markdown("### Evolución Histórica de la Fuga de Talentos (2012 - 2023)")
     if st.button("🔥 Generar Radiografía Histórica", use_container_width=True, key="btn_fuga"):
         try:
-            # Leemos el archivo único que tiene toda la historia
             df_fuga = pd.read_csv("data/fuga_talentos.csv")
             
-            # Asegurarnos de que el índice sea el año para que los gráficos funcionen bien
             if "Año" in df_fuga.columns:
                 df_fuga = df_fuga.set_index("Año")
                 
@@ -58,7 +56,6 @@ with tab2:
     anio_riesgo = st.selectbox("Año a escanear:", [str(y) for y in range(2025, 2011, -1)])
     if st.button("⚠️ Ejecutar Escáner de Riesgo", use_container_width=True, type="primary"):
         try:
-            # Magia con f-strings: busca dinámicamente el archivo del año seleccionado
             ruta_archivo = f"data/volatilidad_riesgo_instituciones_{anio_riesgo}.csv"
             df_riesgo = pd.read_csv(ruta_archivo)
             
@@ -68,111 +65,167 @@ with tab2:
             st.warning(f"No se encontró el escáner de riesgo para el año {anio_riesgo}. Verifica la carpeta 'data/'.")
 
 # ==========================================
-# PESTAÑA 3: CRISIS DE TALENTO DOCENTE (CASCADA HISTÓRICA)
+# PESTAÑA 3: CRISIS DE TALENTO DOCENTE
 # ==========================================
 with tab3:
     st.markdown("### 👨‍🏫 Sobrecarga Docente: La Falla Estructural")
     st.markdown("Los 10 establecimientos más críticos por año. Cuando el ratio de **Alumnos por Docente** se rompe, el sistema colapsa.")
     
-    # Truco de magia: Cacheamos los 120.000 registros
     @st.cache_data
     def cargar_datos_docentes():
         try:
-            # RUTA RELATIVA: Esto funcionará en cualquier lugar (tu PC y la nube)
+            # CORRECCIÓN 2: RUTA RELATIVA A DATA/
             return pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
         except:
             return pd.DataFrame()
             
-    # 🔥 AQUÍ ESTABA EL ERROR: Faltaba esta línea para ejecutar la función
     df_docentes = cargar_datos_docentes()
     
     if not df_docentes.empty:
-        # Obtenemos todos los años únicos, ordenados desde el más reciente al más antiguo
         anios_docentes = sorted(df_docentes['Anio'].unique(), reverse=True)
         
-        # Generamos la cascada visual año por año
         for anio in anios_docentes:
             st.markdown(f"#### 🚨 Cohorte {anio}")
             
-            # Filtramos el año y sacamos el Top 10 con peor ratio
             df_anio = df_docentes[df_docentes['Anio'] == anio]
             df_top10_docentes = df_anio.nlargest(10, 'Ratio_Alumnos_Docente')
             
-            # Dividimos la pantalla: Gráfico a la izquierda, métricas a la derecha
             col_grafico, col_tabla = st.columns([2, 1])
             
             with col_grafico:
-                # Un gráfico de barras rojo sangre para la alerta
                 st.bar_chart(df_top10_docentes.set_index("Nombre_Colegio")["Ratio_Alumnos_Docente"], color="#FF4B4B")
                 
             with col_tabla:
-                # Mostramos la tabla resumen para los curiosos
                 df_mostrar = df_top10_docentes[['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Promedio_Notas']].rename(
                     columns={"Ratio_Alumnos_Docente": "Alumnos x Prof.", "Promedio_Notas": "Nota Prom."}
                 )
                 st.dataframe(df_mostrar, hide_index=True, use_container_width=True)
             
-            st.divider() # Línea separadora entre años
+            st.divider() 
     else:
         st.error("No se encontró el archivo matriz_maestra_ratio_docentes.csv o está vacío.")
 
-## ==========================================
+
+# # ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (FULL DATA + RIESGO)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
 # ==========================================
 with tab4:
-    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión y Riesgo")
+    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
+    
+    @st.cache_data
+    def cargar_geo():
+        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE
+        return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
     
     try:
-        # 1. Cargamos el Parquet base
-        df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
-        df_geo['RBD'] = df_geo['RBD'].astype('int64')
-        df_geo['Anio'] = df_geo['Anio'].astype('int64')
+        df_pd = cargar_geo()
         
-        # 2. Selector de año
-        anio_mapa = st.selectbox("Selecciona año para auditoría:", sorted(df_geo['Anio'].unique(), reverse=True))
+        anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_pd['Anio'].unique(), reverse=True))
+        df_filtrado = df_pd[df_pd['Anio'] == anio_mapa].copy()
         
-        # 3. Cargamos el archivo de Riesgo específico para ese año
-        # Asumo que el archivo se llama 'volatilidad_riesgo_instituciones_2024.csv'
-        ruta_riesgo = f"data/volatilidad_riesgo_instituciones_{anio_mapa}.csv"
-        df_riesgo = pd.read_csv(ruta_riesgo)
-        df_riesgo['RBD'] = df_riesgo['RBD'].astype('int64') # Aseguramos formato
-        
-        # 4. MERGE LIMPIO: Unimos Riesgo con Geo
-        # suffixes=('', '_drop') hace que las columnas duplicadas se llamen '_drop'
-        df_completo = pd.merge(df_geo, df_riesgo, on=['RBD'], how='left', suffixes=('', '_drop'))
-        # Eliminamos inmediatamente las columnas '_drop' para que no haya _x ni _y
-        df_completo = df_completo.loc[:, ~df_completo.columns.str.endswith('_drop')]
-        
-        # Filtramos el año
-        df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
-        
-        # 5. Preparamos datos para Top 50
-        # Usamos 'Volatilidad_Rendimiento' si existe, si no, caemos a 'Ratio_Alumnos_Docente'
-        col_riesgo = 'Volatilidad_Rendimiento' if 'Volatilidad_Rendimiento' in df_filtrado.columns else 'Ratio_Alumnos_Docente'
-        df_top50 = df_filtrado.nlargest(50, col_riesgo)
+        def asignar_color(ratio):
+            if pd.isna(ratio):
+                return [150, 150, 150, 100]  
+            elif ratio <= 20:
+                return [46, 204, 113, 160]   
+            elif ratio <= 30:
+                return [241, 196, 15, 180]   
+            else:
+                return [255, 40, 40, 200]    
+                
+        df_filtrado['color'] = df_filtrado['Ratio_Alumnos_Docente'].apply(asignar_color)
 
+        # ---------------------------------------------------------
+        # MAGIA NUEVA: Extrayendo los 50 más críticos (Rojo/Amarillo)
+        # ---------------------------------------------------------
+        df_criticos = df_filtrado[df_filtrado['Ratio_Alumnos_Docente'] > 20].copy()
+        
+        # Validamos cómo se llaman tus columnas en el Parquet (Ajusta si son distintos)
+        col_notas = "Promedio_Notas" if "Promedio_Notas" in df_criticos.columns else "Ratio_Alumnos_Docente"
+        col_variacion = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_criticos.columns else "Ratio_Alumnos_Docente"
+        
+        # Obtenemos los 50 con mayor variación/riesgo
+        df_top50 = df_criticos.nlargest(50, col_variacion)
+
+        # ---------------------------------------------------------
+        # CONFIGURACIÓN DEL TOOLTIP INTERACTIVO (HTML)
+        # ---------------------------------------------------------
+        tooltip_html = {
+            "html": f"""
+            <div style='font-family: sans-serif;'>
+                <b style='font-size: 15px;'>{{Nombre_Colegio}}</b><br/>
+                <hr style='margin: 5px 0; border-color: #555;'/>
+                🔴 <b>Ratio (Alumnos/Docente):</b> {{Ratio_Alumnos_Docente}}<br/>
+                📉 <b>Nota Promedio:</b> {{{col_notas}}}<br/>
+                ⚠️ <b>Variación (Riesgo):</b> {{{col_variacion}}}
+            </div>
+            """,
+            "style": {
+                "backgroundColor": "#2E2E2E",
+                "color": "white",
+                "border": "1px solid #FF4B4B",
+                "padding": "12px",
+                "borderRadius": "6px",
+                "boxShadow": "2px 2px 10px rgba(0,0,0,0.5)"
+            }
+        }
+
+        # ---------------------------------------------------------
+        # CAPAS DEL MAPA (General + Destacados Top 50)
+        # ---------------------------------------------------------
+        capa_general = pdk.Layer(
+            "ScatterplotLayer",
+            df_filtrado, 
+            get_position='[LONGITUD, LATITUD]',
+            get_color='color', 
+            get_radius=200,
+            radius_min_pixels=2,
+            radius_max_pixels=6,
+            pickable=True,
+        )
+
+        capa_top50 = pdk.Layer(
+            "ScatterplotLayer",
+            df_top50,
+            get_position='[LONGITUD, LATITUD]',
+            get_fill_color=[255, 0, 0, 255], # Rojo puro intenso
+            get_line_color=[0, 0, 0, 255],   # Borde negro para que resalten
+            stroked=True,
+            line_width_min_pixels=1,         # Borde fino y elegante
+            get_radius=350,                  # Tamaño ajustado para no ser grosero
+            radius_min_pixels=4,
+            radius_max_pixels=9,
+            pickable=True,
+        )
+
+        # Dividimos la pantalla: Mapa a la izquierda (70%), Lista Crítica a la derecha (30%)
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
             st.pydeck_chart(pdk.Deck(
-                map_style="light",
-                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
-                layers=[
-                    pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', 
-                              get_radius=200, get_color=[50, 200, 100, 150], pickable=True),
-                    pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
-                              get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
-                ],
-                # TOOLTIP CON TODA LA DATA
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}<br/>Nota: {Promedio_Notas}<br/>Riesgo: {"+col_riesgo+"}"}
+                map_style="light", 
+                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=30), # Pitch 30 le da un leve efecto 3D
+                layers=[capa_general, capa_top50], # Ponemos ambas capas
+                tooltip=tooltip_html
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            # Mostrar tabla con todas las variables de riesgo
-            columnas = ['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Promedio_Notas', col_riesgo]
-            st.dataframe(df_top50[columnas], hide_index=True, use_container_width=True, height=450)
+            st.caption("Instituciones con mayor volatilidad.")
+            
+            # Formateamos la tabla lateral dinámicamente para evitar columnas duplicadas
+            columnas_tabla = ['Nombre_Colegio', 'Ratio_Alumnos_Docente']
+            if col_variacion not in columnas_tabla:
+                columnas_tabla.append(col_variacion)
+                
+            df_mostrar = df_top50[columnas_tabla].copy()
+            
+            # Redondeamos decimales solo si la columna es numérica y existe
+            if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
+                df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2) 
+            
+            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error cargando los datos de riesgo: {e}")
+        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
