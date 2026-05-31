@@ -118,63 +118,50 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA Y TOP 50)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA ESTÁNDAR)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     @st.cache_data
     def cargar_geo():
-        # Asegúrate que el archivo esté en la carpeta /data
         return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
     
     try:
-        df_pd = cargar_geo()
+        df_geo = cargar_geo()
+        anio_mapa = st.selectbox("Selecciona año para el mapa:", sorted(df_geo['Anio'].unique(), reverse=True))
+        df_filtrado = df_geo[df_geo['Anio'] == anio_mapa].copy()
         
-        # Filtro de año
-        anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_pd['Anio'].unique(), reverse=True))
-        df_filtrado = df_pd[df_pd['Anio'] == anio_mapa].copy()
-        
-        # Definición de colores
-        def asignar_color(ratio):
-            if pd.isna(ratio): return [150, 150, 150, 100]
-            elif ratio <= 20: return [46, 204, 113, 160]
-            elif ratio <= 30: return [241, 196, 15, 180]
-            else: return [255, 40, 40, 200]
-                
-        df_filtrado['color'] = df_filtrado['Ratio_Alumnos_Docente'].apply(asignar_color)
+        # Filtramos para el Top 50 para destacarlos
+        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
-        # ---------------------------------------------------------
-        # EXTRACCIÓN DEL TOP 50 (A prueba de errores)
-        # ---------------------------------------------------------
-        # Usamos el Ratio como métrica segura si la Volatilidad no existe
-        metrica_orden = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_filtrado.columns else "Ratio_Alumnos_Docente"
-        
-        # Ordenamos y tomamos el Top 50
-        df_top50 = df_filtrado.nlargest(50, metrica_orden)
-
-        # Configuración visual
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
             st.pydeck_chart(pdk.Deck(
-                map_style="light", 
-                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=30),
+                map_style="light",
+                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=0),
                 layers=[
-                    pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', get_color='color', get_radius=200, pickable=True),
-                    pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', get_fill_color=[255, 0, 0, 255], get_radius=800, pickable=True)
+                    # Capa base (Verdes/Amarillos)
+                    pdk.Layer("ScatterplotLayer", df_filtrado, 
+                              get_position='[LONGITUD, LATITUD]', 
+                              get_radius=200, 
+                              get_color=[50, 200, 100, 150], 
+                              pickable=True),
+                    # Capa Top 50 (Rojos del mismo tamaño)
+                    pdk.Layer("ScatterplotLayer", df_top50, 
+                              get_position='[LONGITUD, LATITUD]', 
+                              get_radius=200, # MISMO RADIO QUE LA CAPA BASE
+                              get_fill_color=[230, 50, 50, 200], 
+                              pickable=True)
                 ],
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}"}
+                tooltip={"html": "<b>{Nombre_Colegio}</b>"}
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            if not df_top50.empty:
-                # Mostramos solo las columnas que sabemos que existen
-                df_mostrar = df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']].copy()
-                st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
-            else:
-                st.info("No hay instituciones críticas en este año.")
+            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error cargando los datos del mapa: {e}")
+        st.error(f"Error cargando el mapa: {e}")
