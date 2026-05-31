@@ -118,25 +118,20 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# ==========================================
-# ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (VERSIÓN DEFINITIVA)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (CON SOBRECARGA DOCENTE)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     try:
-        # Cargamos SOLAMENTE el parquet. Ya tiene Nombre, Ratio, Notas, Lat y Lon.
+        # Cargamos el parquet que ya contiene los datos de sobrecarga
         df = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         
-        # Convertimos RBD a int64 para uniformar
-        df['RBD'] = df['RBD'].astype('int64')
-        
-        # Selector de año
+        # Filtro de año
         anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df['Anio'].unique(), reverse=True))
         df_filtrado = df[df['Anio'] == anio_mapa].copy()
         
-        # Top 50 usando las columnas limpias del parquet
+        # Top 50 Alertas por Ratio (Sobrecarga)
         df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
         col_mapa, col_lista = st.columns([2.5, 1])
@@ -146,22 +141,23 @@ with tab4:
                 map_style="light",
                 initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
                 layers=[
-                    # Capa base (todos los colegios)
                     pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_color=[50, 200, 100, 150], pickable=True),
-                    # Capa Top 50 (los peores ratios en rojo)
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                # Tooltip usando nombres limpios de columna
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}<br/>Nota: {Promedio_Notas}"}
+                # TOOLTIP MEJORADO: Incluye datos de sobrecarga
+                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio Alumnos/Docente: {Ratio_Alumnos_Docente}<br/>Total Docentes: {Total_Docentes}<br/>Nota Promedio: {Promedio_Notas}"}
             ))
             
         with col_lista:
-            st.markdown("#### 🚨 Top 50 Alertas")
-            # Tabla limpia
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Promedio_Notas']], 
+            st.markdown("#### 🚨 Top 50 Alertas (Sobrecarga)")
+            # TABLA AMPLIADA: Incluye los datos de la Pestaña 3
+            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Total_Docentes', 'Promedio_Notas']], 
                          hide_index=True, use_container_width=True, height=450)
+
+    except Exception as e:
+        st.error(f"Error en la auditoría: {e}")
 
     except Exception as e:
         st.error(f"Error en la auditoría: {e}")
