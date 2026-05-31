@@ -11,8 +11,7 @@ st.set_page_config(page_title="SUR DAO | Centro de Mando", page_icon="🐋", lay
 col_logo, col_titulo = st.columns([0.15, 0.85]) 
 
 with col_logo:
-    # CORRECCIÓN PARA LA NUBE: Ruta relativa para la imagen
-    st.image("surdao.svg", width=180)
+    st.image("assets/surdao.svg", width=180) # Esto busca dentro de la carpeta assets
 
 with col_titulo:
     # Estos espacios empujan el título hacia abajo para que quede a la altura de la base del logo
