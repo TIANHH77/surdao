@@ -118,50 +118,52 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA ESTÁNDAR)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (FULL DATA)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     @st.cache_data
     def cargar_geo():
+        # Volvemos a leer tu archivo original que sí tenía todas las columnas de riesgo
         return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
     
     try:
         df_geo = cargar_geo()
-        anio_mapa = st.selectbox("Selecciona año para el mapa:", sorted(df_geo['Anio'].unique(), reverse=True))
+        anio_mapa = st.selectbox("Selecciona año:", sorted(df_geo['Anio'].unique(), reverse=True))
         df_filtrado = df_geo[df_geo['Anio'] == anio_mapa].copy()
         
-        # Filtramos para el Top 50 para destacarlos
-        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
+        # Filtramos para el Top 50 usando la Volatilidad/Riesgo que ya tenías
+        # Aseguramos que la columna de riesgo exista
+        col_riesgo = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_filtrado.columns else "Ratio_Alumnos_Docente"
+        df_top50 = df_filtrado.nlargest(50, col_riesgo)
 
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
             st.pydeck_chart(pdk.Deck(
                 map_style="light",
-                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=0),
+                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
                 layers=[
-                    # Capa base (Verdes/Amarillos)
-                    pdk.Layer("ScatterplotLayer", df_filtrado, 
-                              get_position='[LONGITUD, LATITUD]', 
-                              get_radius=200, 
-                              get_color=[50, 200, 100, 150], 
-                              pickable=True),
-                    # Capa Top 50 (Rojos del mismo tamaño)
-                    pdk.Layer("ScatterplotLayer", df_top50, 
-                              get_position='[LONGITUD, LATITUD]', 
-                              get_radius=200, # MISMO RADIO QUE LA CAPA BASE
-                              get_fill_color=[230, 50, 50, 200], 
-                              pickable=True)
+                    # Puntos base
+                    pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', 
+                              get_radius=200, get_color=[50, 200, 100, 150], pickable=True),
+                    # Puntos Top 50 en rojo
+                    pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
+                              get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                tooltip={"html": "<b>{Nombre_Colegio}</b>"}
+                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Promedio Notas: {Promedio_Notas}<br/>Riesgo: {" + col_riesgo + "}"}
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
+            # AQUÍ RECUPERAMOS TUS DATOS DE RIESGO Y NOTAS EN LA TABLA
+            columnas_mostrar = ['Nombre_Colegio', 'Promedio_Notas', col_riesgo]
+            # Validamos que las columnas existan antes de mostrar
+            columnas_existentes = [c for c in columnas_mostrar if c in df_top50.columns]
+            
+            st.dataframe(df_top50[columnas_existentes], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error cargando el mapa: {e}")
+        st.error(f"Error cargando los datos de auditoría: {e}")
+
