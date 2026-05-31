@@ -118,45 +118,41 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA Y TOP 50)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MODO ESTABLE)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
-    @st.cache_data
-    def cargar_geo():
-        return pd.read_parquet("data/BACKEND_SURDAO_COMPLETO.parquet", engine="pyarrow")
+    # Usamos la lógica de cargar cada año desde su propio CSV
+    anio_mapa = st.selectbox("Selecciona año para el mapa:", [str(y) for y in range(2025, 2011, -1)])
     
     try:
-        df_pd = cargar_geo()
+        # Volvemos a la ruta que sabes que funciona en tu app anterior
+        ruta_geo = f"data/volatilidad_riesgo_instituciones_{anio_mapa}.csv"
+        df_filtrado = pd.read_csv(ruta_geo)
         
-        # Filtramos por año (usando AGNO como definimos en el Parquet maestro)
-        anio_mapa = st.selectbox("Selecciona año:", sorted(df_pd['AGNO'].unique(), reverse=True))
-        df_filtrado = df_pd[df_pd['AGNO'] == anio_mapa].copy()
-        
-        # ---------------------------------------------------------
-        # FORZAMOS EL TOP 50: Basado en Indice_Riesgo (la columna maestra)
-        # ---------------------------------------------------------
-        # Aquí filtramos los 50 peores casos basándonos en el índice de riesgo
-        df_top50 = df_filtrado.nlargest(50, 'Indice_Riesgo')
+        # Filtramos para el Top 50 (esto es lo que recupera tu alerta lateral)
+        col_variacion = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_filtrado.columns else "Ratio_Alumnos_Docente"
+        df_top50 = df_filtrado.nlargest(50, col_variacion)
 
-        # --- Código del mapa (manteniendo tu diseño estable) ---
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
-            # Tu configuración de PyDeck que ya funciona...
-            st.pydeck_chart(pdk.Deck(...)) # (mantenlo como está)
+            # Tu configuración estable de PyDeck
+            st.pydeck_chart(pdk.Deck(
+                map_style="light", 
+                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=30),
+                layers=[
+                    pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', get_radius=200, get_color=[200, 200, 200, 100], pickable=True),
+                    pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', get_radius=800, get_fill_color=[230, 80, 80, 200], pickable=True)
+                ]
+            ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            st.caption("Instituciones con mayor volatilidad.")
-            
-            # AQUÍ ESTÁ LA CLAVE: Seleccionamos las columnas que sí existen en tu Parquet
-            # Nombre_Colegio y Nombre_Sostenedor son las que querías ver
-            df_mostrar = df_top50[['Nombre_Colegio', 'Nombre_Sostenedor', 'Indice_Riesgo']].copy()
-            df_mostrar['Indice_Riesgo'] = df_mostrar['Indice_Riesgo'].round(2)
-            
-            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
+            # Tabla simple y directa
+            st.dataframe(df_top50[['NOM_RBD', col_variacion]], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
+        st.error(f"El mapa no pudo cargar el año {anio_mapa}. (Error: {e})")
