@@ -118,35 +118,32 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (CORRECCIÓN DE COLUMNAS)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA + TOOLTIP RECUPERADO)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     try:
-        # Carga de datos (igual que antes)
+        # Cargamos los datos (mismo bloque que funciona)
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
         df_geo['RBD'] = df_geo['RBD'].astype('int64')
         df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
         df_geo['Anio'] = df_geo['Anio'].astype('int64')
         df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
-        
         df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
         
         anio_mapa = st.selectbox("Selecciona año:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # --- AQUÍ ESTÁ LA CORRECCIÓN ---
-        # Usamos las columnas con sufijo _x que identificamos
-        col_ratio = "Ratio_Alumnos_Docente_x"
-        col_nombre = "Nombre_Colegio_x"
-        
-        df_top50 = df_filtrado.nlargest(50, col_ratio)
+        # Filtro para Top 50
+        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente_x')
 
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
+            # PUNTOS + TOOLTIP RECUPERADO
             st.pydeck_chart(pdk.Deck(
                 map_style="light",
                 initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
@@ -156,12 +153,16 @@ with tab4:
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                tooltip={"html": "<b>{"+col_nombre+"}</b><br/>Ratio: {"+col_ratio+"}"}
+                # Aquí está la clave para que aparezca la data al pasar el mouse:
+                tooltip={
+                    "html": "<b>{Nombre_Colegio_x}</b><br/>Ratio: {Ratio_Alumnos_Docente_x}<br/>Nota: {Promedio_Notas_x}"
+                }
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            st.dataframe(df_top50[[col_nombre, col_ratio]], hide_index=True, use_container_width=True, height=450)
+            st.dataframe(df_top50[['Nombre_Colegio_x', 'Ratio_Alumnos_Docente_x', 'Promedio_Notas_x']], 
+                         hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
+        st.error(f"Error en el mapa o tooltip: {e}")
