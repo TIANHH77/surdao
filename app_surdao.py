@@ -118,30 +118,33 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA Y TOP 50)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (ESTABLE)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     @st.cache_data
-    def cargar_datos():
-        # Cargamos los dos archivos base
+    def cargar_geo():
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
-        # Cruzamos para asegurar que tenemos el nombre y el ratio del colegio
+        
+        # BLINDAJE: Convertir RBD y Anio a int64 para que el merge no falle
+        df_geo['RBD'] = df_geo['RBD'].astype('int64')
+        df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
+        df_geo['Anio'] = df_geo['Anio'].astype('int64')
+        df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
+        
         return pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
     
     try:
-        df_completo = cargar_datos()
-        
-        anio_mapa = st.selectbox("Selecciona año:", sorted(df_completo['Anio'].unique(), reverse=True))
+        df_completo = cargar_geo()
+        anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # Filtro de Top 50 basado en la estructura de tu archivo
+        # Filtro para Top 50 (sin crash)
         df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
         col_mapa, col_lista = st.columns([2.5, 1])
-
         with col_mapa:
             st.pydeck_chart(pdk.Deck(
                 map_style="light",
@@ -152,14 +155,11 @@ with tab4:
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}<br/>Nota: {Promedio_Notas}"}
+                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}"}
             ))
-            
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            # Mostramos los datos que sí existen en tu CSV
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente', 'Promedio_Notas']], 
-                         hide_index=True, use_container_width=True, height=450)
+            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True)
 
     except Exception as e:
         st.error(f"Error en la auditoría: {e}")
