@@ -118,51 +118,55 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA + TOOLTIP RECUPERADO)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA + TABLA TOP 50)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     try:
-        # Cargamos los datos (mismo bloque que funciona)
+        # 1. Carga de datos
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
-        df_geo['RBD'] = df_geo['RBD'].astype('int64')
-        df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
-        df_geo['Anio'] = df_geo['Anio'].astype('int64')
-        df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
-        df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
         
-        anio_mapa = st.selectbox("Selecciona año:", sorted(df_completo['Anio'].unique(), reverse=True))
+        # 2. Blindaje de tipos (INT64)
+        for df in [df_geo, df_ratios]:
+            df['RBD'] = df['RBD'].astype('int64')
+            df['Anio'] = df['Anio'].astype('int64')
+        
+        # 3. MERGE LIMPIO: Evitamos los sufijos _x y _y
+        df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left', suffixes=('', '_drop'))
+        # Borramos las columnas duplicadas que venían del segundo archivo
+        df_completo = df_completo.loc[:, ~df_completo.columns.str.endswith('_drop')]
+        
+        # 4. Filtro por año
+        anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # Filtro para Top 50
-        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente_x')
+        # 5. Cálculo del Top 50
+        # Usamos Ratio_Alumnos_Docente porque es la columna que existe en tu CSV
+        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
         col_mapa, col_lista = st.columns([2.5, 1])
 
         with col_mapa:
-            # PUNTOS + TOOLTIP RECUPERADO
             st.pydeck_chart(pdk.Deck(
                 map_style="light",
                 initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5),
                 layers=[
+                    # Puntos base
                     pdk.Layer("ScatterplotLayer", df_filtrado, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_color=[50, 200, 100, 150], pickable=True),
+                    # Puntos Top 50 (rojos)
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                # Aquí está la clave para que aparezca la data al pasar el mouse:
-                tooltip={
-                    "html": "<b>{Nombre_Colegio_x}</b><br/>Ratio: {Ratio_Alumnos_Docente_x}<br/>Nota: {Promedio_Notas_x}"
-                }
+                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}"}
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            st.dataframe(df_top50[['Nombre_Colegio_x', 'Ratio_Alumnos_Docente_x', 'Promedio_Notas_x']], 
-                         hide_index=True, use_container_width=True, height=450)
+            # Mostramos la data limpia
+            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en el mapa o tooltip: {e}")
+        st.error(f"Error en la auditoría: {e}")
