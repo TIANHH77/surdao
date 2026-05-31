@@ -78,9 +78,8 @@ with tab3:
     @st.cache_data
     def cargar_datos_docentes():
         try:
-            # CORRECCIÓN PARA LA NUBE: Ruta relativa
-            ruta_relativa = "data/matriz_maestra_ratio_docentes.csv"
-            return pd.read_csv(ruta_relativa)
+            # RUTA RELATIVA: Esto funcionará en cualquier lugar (tu PC y la nube)
+            return pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
         except:
             return pd.DataFrame()
             
