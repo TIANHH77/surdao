@@ -118,33 +118,35 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (ESTABLE)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA Y TOP 50)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
-    @st.cache_data
-    def cargar_geo():
+    try:
+        # Cargamos los archivos
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
         
-        # BLINDAJE: Convertir RBD y Anio a int64 para que el merge no falle
+        # Blindaje de tipos para el merge
         df_geo['RBD'] = df_geo['RBD'].astype('int64')
         df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
         df_geo['Anio'] = df_geo['Anio'].astype('int64')
         df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
         
-        return pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
-    
-    try:
-        df_completo = cargar_geo()
-        anio_mapa = st.selectbox("Selecciona año para filtrar:", sorted(df_completo['Anio'].unique(), reverse=True))
+        # Merge
+        df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
+        
+        # Selector de año
+        anio_mapa = st.selectbox("Selecciona año para el mapa:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # Filtro para Top 50 (sin crash)
+        # Top 50 (Usamos la columna que sabemos que existe en tu CSV)
         df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
 
         col_mapa, col_lista = st.columns([2.5, 1])
+
         with col_mapa:
             st.pydeck_chart(pdk.Deck(
                 map_style="light",
@@ -157,10 +159,15 @@ with tab4:
                 ],
                 tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}"}
             ))
+            
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True)
+            # Mostramos la tabla solo con las columnas que garantizamos existen
+            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        st.error(f"Error en la auditoría: {e}")
+        # Si falla, imprimimos el error y las columnas disponibles para que sepas qué nombre usar
+        st.error(f"Error en Pestaña 4: {e}")
+        if 'df_completo' in locals():
+            st.write("Columnas disponibles:", df_completo.columns.tolist())
 
