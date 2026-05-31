@@ -118,32 +118,31 @@ with tab3:
 
 ## ==========================================
 # ==========================================
-# ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA Y TOP 50)
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (CORRECCIÓN DE COLUMNAS)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
     
     try:
-        # Cargamos los archivos
+        # Carga de datos (igual que antes)
         df_geo = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
         df_ratios = pd.read_csv("data/matriz_maestra_ratio_docentes.csv")
-        
-        # Blindaje de tipos para el merge
         df_geo['RBD'] = df_geo['RBD'].astype('int64')
         df_ratios['RBD'] = df_ratios['RBD'].astype('int64')
         df_geo['Anio'] = df_geo['Anio'].astype('int64')
         df_ratios['Anio'] = df_ratios['Anio'].astype('int64')
         
-        # Merge
         df_completo = pd.merge(df_geo, df_ratios, on=['RBD', 'Anio'], how='left')
         
-        # Selector de año
-        anio_mapa = st.selectbox("Selecciona año para el mapa:", sorted(df_completo['Anio'].unique(), reverse=True))
+        anio_mapa = st.selectbox("Selecciona año:", sorted(df_completo['Anio'].unique(), reverse=True))
         df_filtrado = df_completo[df_completo['Anio'] == anio_mapa].copy()
         
-        # Top 50 (Usamos la columna que sabemos que existe en tu CSV)
-        df_top50 = df_filtrado.nlargest(50, 'Ratio_Alumnos_Docente')
+        # --- AQUÍ ESTÁ LA CORRECCIÓN ---
+        # Usamos las columnas con sufijo _x que identificamos
+        col_ratio = "Ratio_Alumnos_Docente_x"
+        col_nombre = "Nombre_Colegio_x"
+        
+        df_top50 = df_filtrado.nlargest(50, col_ratio)
 
         col_mapa, col_lista = st.columns([2.5, 1])
 
@@ -157,17 +156,12 @@ with tab4:
                     pdk.Layer("ScatterplotLayer", df_top50, get_position='[LONGITUD, LATITUD]', 
                               get_radius=200, get_fill_color=[230, 80, 80, 200], pickable=True)
                 ],
-                tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Ratio: {Ratio_Alumnos_Docente}"}
+                tooltip={"html": "<b>{"+col_nombre+"}</b><br/>Ratio: {"+col_ratio+"}"}
             ))
             
         with col_lista:
             st.markdown("#### 🚨 Top 50 Alertas")
-            # Mostramos la tabla solo con las columnas que garantizamos existen
-            st.dataframe(df_top50[['Nombre_Colegio', 'Ratio_Alumnos_Docente']], hide_index=True, use_container_width=True, height=450)
+            st.dataframe(df_top50[[col_nombre, col_ratio]], hide_index=True, use_container_width=True, height=450)
 
     except Exception as e:
-        # Si falla, imprimimos el error y las columnas disponibles para que sepas qué nombre usar
-        st.error(f"Error en Pestaña 4: {e}")
-        if 'df_completo' in locals():
-            st.write("Columnas disponibles:", df_completo.columns.tolist())
-
+        st.error(f"Error en la auditoría: {e}")
