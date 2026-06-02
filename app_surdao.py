@@ -107,33 +107,30 @@ with tab3:
 
 
 # # ==========================================
-# ==========================================
-# ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Auditoría Territorial: Rendimiento vs. Gestión")
     
+    # Esta es la única forma correcta de cargar los datos
     @st.cache_data
-    def cargar_master_geo():
-        # Cargamos el archivo que acabamos de crear en el paso anterior
-        return pd.read_parquet("master_surdao_2026.parquet")
+    def get_data():
+        # Asegúrate de que esta ruta coincida exactamente con donde está tu master
+        return pd.read_parquet("data/master_surdao_2026.parquet")
     
     try:
-        df_master = cargar_master_geo()
+        df_master = get_data()
         
-        # Selector de métrica para el mapa
+        # Selector de métrica
         opcion_mapa = st.radio("Visualizar por:", ["Tasa de Éxito", "Sobrecarga Docente"], horizontal=True)
         
-        # Definimos qué columna usar para el color según la elección
+        # Lógica de color
         if opcion_mapa == "Tasa de Éxito":
             col_valor = 'Tasa_Exito'
-            # Rojo = bajo éxito, Verde = alto éxito
             def color_func(val):
                 return [231, 76, 60, 160] if val < 20 else [46, 204, 113, 160]
         else:
             col_valor = 'Ratio_Alumnos_Docente'
-            # Rojo = alta sobrecarga, Verde = baja sobrecarga
             def color_func(val):
                 return [231, 76, 60, 160] if val > 25 else [46, 204, 113, 160]
         
@@ -154,9 +151,8 @@ with tab4:
             tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Éxito: {Tasa_Exito}%<br/>Sobrecarga: {Ratio_Alumnos_Docente}"}
         ))
         
-        # Tabla de datos debajo del mapa
+        # Tabla de datos
         st.dataframe(df_master[['Nombre_Colegio', 'Tasa_Exito', 'Ratio_Alumnos_Docente', 'Puntaje_Docente_Promedio']].sort_values(by='Tasa_Exito', ascending=False), use_container_width=True)
 
     except Exception as e:
         st.error(f"Error en la auditoría territorial: {e}")
-
