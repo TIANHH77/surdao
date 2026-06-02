@@ -108,124 +108,55 @@ with tab3:
 
 # # ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE)
 # ==========================================
 with tab4:
-    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
+    st.markdown("### 🌍 Auditoría Territorial: Rendimiento vs. Gestión")
     
     @st.cache_data
-    def cargar_geo():
-        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE
-        return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
+    def cargar_master_geo():
+        # Cargamos el archivo que acabamos de crear en el paso anterior
+        return pd.read_parquet("master_surdao_2026.parquet")
     
     try:
-        df_pd = cargar_geo()
+        df_master = cargar_master_geo()
         
-        anio_mapa = st.selectbox("Selecciona año para filtrar el mapa:", sorted(df_pd['Anio'].unique(), reverse=True))
-        df_filtrado = df_pd[df_pd['Anio'] == anio_mapa].copy()
+        # Selector de métrica para el mapa
+        opcion_mapa = st.radio("Visualizar por:", ["Tasa de Éxito", "Sobrecarga Docente"], horizontal=True)
         
-        def asignar_color(ratio):
-            if pd.isna(ratio):
-                return [150, 150, 150, 100]  
-            elif ratio <= 20:
-                return [46, 204, 113, 160]   
-            elif ratio <= 30:
-                return [241, 196, 15, 180]   
-            else:
-                return [255, 40, 40, 200]    
-                
-        df_filtrado['color'] = df_filtrado['Ratio_Alumnos_Docente'].apply(asignar_color)
-
-        # ---------------------------------------------------------
-        # MAGIA NUEVA: Extrayendo los 50 más críticos (Rojo/Amarillo)
-        # ---------------------------------------------------------
-        df_criticos = df_filtrado[df_filtrado['Ratio_Alumnos_Docente'] > 20].copy()
+        # Definimos qué columna usar para el color según la elección
+        if opcion_mapa == "Tasa de Éxito":
+            col_valor = 'Tasa_Exito'
+            # Rojo = bajo éxito, Verde = alto éxito
+            def color_func(val):
+                return [231, 76, 60, 160] if val < 20 else [46, 204, 113, 160]
+        else:
+            col_valor = 'Ratio_Alumnos_Docente'
+            # Rojo = alta sobrecarga, Verde = baja sobrecarga
+            def color_func(val):
+                return [231, 76, 60, 160] if val > 25 else [46, 204, 113, 160]
         
-        # Validamos cómo se llaman tus columnas en el Parquet (Ajusta si son distintos)
-        col_notas = "Promedio_Notas" if "Promedio_Notas" in df_criticos.columns else "Ratio_Alumnos_Docente"
-        col_variacion = "Volatilidad_Rendimiento" if "Volatilidad_Rendimiento" in df_criticos.columns else "Ratio_Alumnos_Docente"
+        df_master['color'] = df_master[col_valor].apply(color_func)
         
-        # Obtenemos los 50 con mayor variación/riesgo
-        df_top50 = df_criticos.nlargest(50, col_variacion)
-
-        # ---------------------------------------------------------
-        # CONFIGURACIÓN DEL TOOLTIP INTERACTIVO (HTML)
-        # ---------------------------------------------------------
-        tooltip_html = {
-            "html": f"""
-            <div style='font-family: sans-serif;'>
-                <b style='font-size: 15px;'>{{Nombre_Colegio}}</b><br/>
-                <hr style='margin: 5px 0; border-color: #555;'/>
-                🔴 <b>Ratio (Alumnos/Docente):</b> {{Ratio_Alumnos_Docente}}<br/>
-                📉 <b>Nota Promedio:</b> {{{col_notas}}}<br/>
-                ⚠️ <b>Variación (Riesgo):</b> {{{col_variacion}}}
-            </div>
-            """,
-            "style": {
-                "backgroundColor": "#2E2E2E",
-                "color": "white",
-                "border": "1px solid #FF4B4B",
-                "padding": "12px",
-                "borderRadius": "6px",
-                "boxShadow": "2px 2px 10px rgba(0,0,0,0.5)"
-            }
-        }
-
-        # ---------------------------------------------------------
-        # CAPAS DEL MAPA (General + Destacados Top 50)
-        # ---------------------------------------------------------
-        capa_general = pdk.Layer(
-            "ScatterplotLayer",
-            df_filtrado, 
-            get_position='[LONGITUD, LATITUD]',
-            get_color='color', 
-            get_radius=200,
-            radius_min_pixels=2,
-            radius_max_pixels=6,
-            pickable=True,
-        )
-
-        capa_top50 = pdk.Layer(
-            "ScatterplotLayer",
-            df_top50,
-            get_position='[LONGITUD, LATITUD]',
-            get_fill_color=[255, 0, 0, 255], # Rojo puro intenso
-            get_line_color=[0, 0, 0, 255],   # Borde negro para que resalten
-            stroked=True,
-            line_width_min_pixels=1,         # Borde fino y elegante
-            get_radius=350,                  # Tamaño ajustado para no ser grosero
-            radius_min_pixels=4,
-            radius_max_pixels=9,
-            pickable=True,
-        )
-
-        # Dividimos la pantalla: Mapa a la izquierda (70%), Lista Crítica a la derecha (30%)
-        col_mapa, col_lista = st.columns([2.5, 1])
-
-        with col_mapa:
-            st.pydeck_chart(pdk.Deck(
-                map_style="light", 
-                initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=5, pitch=30), # Pitch 30 le da un leve efecto 3D
-                layers=[capa_general, capa_top50], # Ponemos ambas capas
-                tooltip=tooltip_html
-            ))
-            
-        with col_lista:
-            st.markdown("#### 🚨 Top 50 Alertas")
-            st.caption("Instituciones con mayor volatilidad.")
-            
-            # Formateamos la tabla lateral dinámicamente para evitar columnas duplicadas
-            columnas_tabla = ['Nombre_Colegio', 'Ratio_Alumnos_Docente']
-            if col_variacion not in columnas_tabla:
-                columnas_tabla.append(col_variacion)
-                
-            df_mostrar = df_top50[columnas_tabla].copy()
-            
-            # Redondeamos decimales solo si la columna es numérica y existe
-            if col_variacion in df_mostrar.columns and pd.api.types.is_numeric_dtype(df_mostrar[col_variacion]):
-                df_mostrar[col_variacion] = df_mostrar[col_variacion].round(2) 
-            
-            st.dataframe(df_mostrar, hide_index=True, use_container_width=True, height=450)
+        # Mapa
+        st.pydeck_chart(pdk.Deck(
+            map_style="light",
+            initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=6),
+            layers=[pdk.Layer(
+                "ScatterplotLayer",
+                df_master,
+                get_position='[LONGITUD, LATITUD]',
+                get_color='color',
+                get_radius=300,
+                pickable=True
+            )],
+            tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Éxito: {Tasa_Exito}%<br/>Sobrecarga: {Ratio_Alumnos_Docente}"}
+        ))
+        
+        # Tabla de datos debajo del mapa
+        st.dataframe(df_master[['Nombre_Colegio', 'Tasa_Exito', 'Ratio_Alumnos_Docente', 'Puntaje_Docente_Promedio']].sort_values(by='Tasa_Exito', ascending=False), use_container_width=True)
 
     except Exception as e:
-        st.error(f"Error cargando el mapa. Asegúrate de que el archivo matriz_final_geolocalizada.parquet existe y contiene las columnas necesarias. Detalles: {e}")
+        st.error(f"Error en la auditoría territorial: {e}")
+
