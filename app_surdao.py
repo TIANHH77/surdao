@@ -73,10 +73,10 @@ with tab3:
 with tab4:
     st.markdown("### 🌍 Auditoría Territorial: Rendimiento vs. Gestión")
     
-    @st.cache_data
+   @st.cache_data
     def get_master_data():
-        # RUTA CORREGIDA: Apunta al archivo en la raíz del proyecto
-        return pd.read_parquet("master_surdao_2026.parquet")
+        # Agregamos 'data/' porque ahí es donde lo subiste
+        return pd.read_parquet("data/master_surdao_2026.parquet")
     
     try:
         df_master = get_master_data()
