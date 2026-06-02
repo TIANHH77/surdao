@@ -69,15 +69,18 @@ with tab3:
     except:
         st.error("No se encontró el archivo matriz_maestra_ratio_docentes.csv")
 
-# PESTAÑA 4: AUDITORÍA TERRITORIAL
+# ==========================================
+# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE)
+# ==========================================
 with tab4:
     st.markdown("### 🌍 Auditoría Territorial: Rendimiento vs. Gestión")
     
-   @st.cache_data
+    # 1. Definición de la función SIN espacios extra
+    @st.cache_data
     def get_master_data():
-        # Agregamos 'data/' porque ahí es donde lo subiste
         return pd.read_parquet("data/master_surdao_2026.parquet")
     
+    # 2. Carga y visualización
     try:
         df_master = get_master_data()
         
@@ -109,4 +112,4 @@ with tab4:
         st.dataframe(df_master[['Nombre_Colegio', 'Tasa_Exito', 'Ratio_Alumnos_Docente', 'Puntaje_Docente_Promedio']].sort_values(by='Tasa_Exito', ascending=False), use_container_width=True)
 
     except Exception as e:
-        st.error(f"Error cargando el archivo master. Verifica que esté en la raíz: {e}")
+        st.error(f"Error cargando los datos. Verifica la ruta 'data/master_surdao_2026.parquet': {e}")
