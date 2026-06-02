@@ -70,19 +70,23 @@ with tab3:
         st.error("No se encontró el archivo matriz_maestra_ratio_docentes.csv")
 
 # ==========================================
+# ==========================================
 # PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Auditoría Territorial: Rendimiento vs. Gestión")
     
-    # 1. Definición de la función SIN espacios extra
     @st.cache_data
     def get_master_data():
         return pd.read_parquet("data/master_surdao_2026.parquet")
     
-    # 2. Carga y visualización
     try:
         df_master = get_master_data()
+        
+        # Filtro de año (ya que ahora tienes la columna 'Anio' en tu master)
+        anios_disponibles = sorted(df_master['Anio'].unique(), reverse=True)
+        anio_sel = st.selectbox("Selecciona año para auditar:", anios_disponibles)
+        df_filtrado = df_master[df_master['Anio'] == anio_sel].copy()
         
         opcion_mapa = st.radio("Visualizar por:", ["Tasa de Éxito", "Sobrecarga Docente"], horizontal=True)
         
@@ -93,14 +97,14 @@ with tab4:
             col_valor = 'Ratio_Alumnos_Docente'
             def color_func(val): return [231, 76, 60, 160] if val > 25 else [46, 204, 113, 160]
         
-        df_master['color'] = df_master[col_valor].apply(color_func)
+        df_filtrado['color'] = df_filtrado[col_valor].apply(color_func)
         
         st.pydeck_chart(pdk.Deck(
             map_style="light",
             initial_view_state=pdk.ViewState(latitude=-33.45, longitude=-70.66, zoom=6),
             layers=[pdk.Layer(
                 "ScatterplotLayer",
-                df_master,
+                df_filtrado,
                 get_position='[LONGITUD, LATITUD]',
                 get_color='color',
                 get_radius=300,
@@ -109,7 +113,9 @@ with tab4:
             tooltip={"html": "<b>{Nombre_Colegio}</b><br/>Éxito: {Tasa_Exito}%<br/>Sobrecarga: {Ratio_Alumnos_Docente}"}
         ))
         
-        st.dataframe(df_master[['Nombre_Colegio', 'Tasa_Exito', 'Ratio_Alumnos_Docente', 'Puntaje_Docente_Promedio']].sort_values(by='Tasa_Exito', ascending=False), use_container_width=True)
+        # Tabla sin la columna inexistente
+        cols_mostrar = ['Nombre_Colegio', 'Tasa_Exito', 'Ratio_Alumnos_Docente', 'Total_Docentes']
+        st.dataframe(df_filtrado[cols_mostrar].sort_values(by='Tasa_Exito', ascending=False), use_container_width=True)
 
     except Exception as e:
-        st.error(f"Error cargando los datos. Verifica la ruta 'data/master_surdao_2026.parquet': {e}")
+        st.error(f"Error en auditoría territorial: {e}")
