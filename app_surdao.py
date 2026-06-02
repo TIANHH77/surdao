@@ -108,15 +108,22 @@ with tab3:
 
 # # ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
-# ==========================================
-with tab4:
-    st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
+@st.cache_data
+    def cargar_datos_completos():
+        # 1. Cargamos el mapa base
+        df_mapa = pd.read_parquet("data/matriz_final_geolocalizada.parquet")
+        # 2. Cargamos el archivo que creamos antes con el éxito
+        df_exito = pd.read_parquet("data/master_surdao_2026.parquet")
+        
+        # 3. Hacemos el "pegamento" (merge)
+        # Nos aseguramos de que el RBD sea string para que coincidan
+        df_mapa['RBD'] = df_mapa['RBD'].astype(str)
+        df_exito['RBD'] = df_exito['RBD'].astype(str)
+        
+        return df_mapa.merge(df_exito[['RBD', 'Tasa_Exito']], on='RBD', how='left')
     
-    @st.cache_data
-    def cargar_geo():
-        # AHORA PANDAS LEE EL PARQUET DIRECTAMENTE
-        return pd.read_parquet("data/matriz_final_geolocalizada.parquet", engine="pyarrow")
+    try:
+        df_pd = cargar_datos_completos()
     
     try:
         df_pd = cargar_geo()
