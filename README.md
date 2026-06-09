@@ -4,6 +4,8 @@
 
 # Centro de Mando: Auditoría Ciudadana Territorial
 
+[![Clones](https://img.shields.io/badge/dynamic/json?color=2ea043&label=Clones&query=count&logo=github&url=https%3A%2F%2Fgist.githubusercontent.com%2FTIANHH77%2F0259cb9b2d97bab774a666c4003eb5a3%2Fraw%2Fclone.json)](https://github.com/TIANHH77/surdao)
+
 <p align="center">
   <a href="https://surdao.streamlit.app/" target="_blank">
     <img src="https://img.shields.io/badge/🚀_Probar_Centro_de_Mando_en_Vivo-FF4B4B?style=for-the-badge" alt="Live Demo">
