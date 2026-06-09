@@ -1,0 +1,22 @@
+name: GitHub Clone Count Badge
+on:
+  schedule:
+    - cron: "0 */8 * * *" # Se ejecuta automáticamente cada 8 horas
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Actualizar contador de clones
+        uses: MShawon/github-clone-count-badge@v1
+        with:
+          owner: 'TIANHH77'
+          repo: 'surdao'
+          mac_address: ''
+          clone_badge_color: '2ea043'
+          auth_token: ${{ secrets.AUTH_TOKEN }}
+          gist_id: ${{ secrets.GIST_ID }}
+          icon: 'github'
