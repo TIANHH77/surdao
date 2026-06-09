@@ -11,12 +11,34 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Actualizar contador de clones
-        uses: MShawon/github-clone-count-badge@1ee27f9cbddc9d216ccbde2758ada05cbe1e4cfa
-        with:
-          owner: 'TIANHH77'
-          repo: 'surdao'
-          mac_address: ''
-          clone_badge_color: '2ea043'
-          auth_token: ${{ secrets.AUTH_TOKEN }}
-          gist_id: ${{ secrets.GIST_ID }}
-          icon: 'github'
+        env:
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: |
+          if [ -z "${AUTH_TOKEN}" ] || [ -z "${GIST_ID}" ]; then
+            echo "AUTH_TOKEN y GIST_ID son requeridos."
+            exit 1
+          fi
+
+          curl --fail --show-error \
+            --user "${{ github.actor }}:${AUTH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/traffic/clones" \
+            > clone.json
+
+          curl --fail --show-error \
+            "https://gist.githubusercontent.com/${{ github.actor }}/${GIST_ID}/raw/clone.json" \
+            > clone_before.json
+
+          curl --fail --show-error \
+            "https://raw.githubusercontent.com/MShawon/github-clone-count-badge/master/main.py" \
+            > main.py
+          python3 main.py
+
+          content=$(sed -e 's/\\/\\\\/g' -e 's/\t/\\t/g' -e 's/\"/\\"/g' -e 's/\r//g' "clone.json" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+          echo '{"description": "${{ github.repository }} clone statistics", "files": {"clone.json": {"content": "'"$content"'"}}}' > post_clone.json
+          curl --silent --show-error --fail -X PATCH \
+            --user "${{ github.actor }}:${AUTH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d @post_clone.json \
+            "https://api.github.com/gists/${GIST_ID}" > /dev/null
