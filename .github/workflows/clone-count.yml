@@ -11,12 +11,76 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Actualizar contador de clones
-        uses: MShawon/github-clone-count-badge@1ee27f9cbddc9d216ccbde2758ada05cbe1e4cfa
-        with:
-          owner: 'TIANHH77'
-          repo: 'surdao'
-          mac_address: ''
-          clone_badge_color: '2ea043'
-          auth_token: ${{ secrets.AUTH_TOKEN }}
-          gist_id: ${{ secrets.GIST_ID }}
-          icon: 'github'
+        env:
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: |
+          if [ -z "${AUTH_TOKEN}" ] || [ -z "${GIST_ID}" ]; then
+            echo "AUTH_TOKEN and GIST_ID are required."
+            exit 1
+          fi
+
+          curl --fail --show-error \
+            --user "${{ github.actor }}:${AUTH_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/traffic/clones" \
+            > clone.json
+
+          if ! curl --fail --show-error \
+            "https://gist.githubusercontent.com/${{ github.actor }}/${GIST_ID}/raw/clone.json" \
+            > clone_before.json; then
+            cp clone.json clone_before.json
+          fi
+
+          python3 - <<'PY'
+          import json
+
+          with open("clone.json", "r", encoding="utf-8") as fh:
+              now = json.load(fh)
+
+          with open("clone_before.json", "r", encoding="utf-8") as fh:
+              before = json.load(fh)
+
+          before_clones = before.get("clones", [])
+          if not isinstance(before_clones, list):
+              before_clones = []
+          timestamps = {before_clones[i]["timestamp"]: i for i in range(len(before_clones))}
+          latest = dict(before)
+          latest["clones"] = list(before_clones)
+
+          for i in range(len(now["clones"])):
+              timestamp = now["clones"][i]["timestamp"]
+              if timestamp in timestamps:
+                  latest["clones"][timestamps[timestamp]] = now["clones"][i]
+              else:
+                  latest["clones"].append(now["clones"][i])
+
+          latest["count"] = sum(int(x["count"]) for x in latest["clones"])
+          latest["uniques"] = sum(int(x["uniques"]) for x in latest["clones"])
+
+          if len(timestamps) > 100:
+              remove_this = []
+              clones = latest["clones"]
+              for i in range(max(0, min(len(clones) - 1, len(timestamps) - 35))):
+                  clones[i]["timestamp"] = clones[i]["timestamp"][:7]
+                  if clones[i]["timestamp"] == clones[i + 1]["timestamp"][:7]:
+                      clones[i + 1]["count"] = int(clones[i + 1]["count"]) + int(clones[i]["count"])
+                      clones[i + 1]["uniques"] = int(clones[i + 1]["uniques"]) + int(clones[i]["uniques"])
+                      remove_this.append(clones[i])
+
+              for item in remove_this:
+                  clones.remove(item)
+
+          with open("clone.json", "w", encoding="utf-8") as fh:
+              json.dump(latest, fh, ensure_ascii=False, indent=4)
+          PY
+
+          jq -n \
+            --arg description "${{ github.repository }} clone statistics" \
+            --rawfile content clone.json \
+            '{description: $description, files: {"clone.json": {content: $content}}}' > post_clone.json
+          curl --silent --show-error --fail -X PATCH \
+            --user "${{ github.actor }}:${AUTH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d @post_clone.json \
+            "https://api.github.com/gists/${GIST_ID}" > /dev/null
