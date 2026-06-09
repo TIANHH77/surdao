@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Actualizar contador de clones
-        uses: MShawon/github-clone-count-badge@v1
+        uses: MShawon/github-clone-count-badge@master
         with:
           owner: 'TIANHH77'
           repo: 'surdao'
