@@ -70,18 +70,15 @@ Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya e
 Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema educativo no se arregla solo mirándolo. 
 
 ## 🖥️ Terminales de Auditoría (Estructura de la App)
-### 📉 1. Histórico Fuga
-* **Propósito:** Evolución estructural de la pérdida de alumnos de excelencia académica (2012-2023).
-* **Fuga de talentos del sistema educativo.
 
-### ⚠️ 2. Escáner de Riesgo
+### ⚠️ 1. Escáner de Riesgo
 * **Propósito:** Detecta anomalías estadísticas en calificaciones escolares y volatilidad institucional.
 * **Métricas:** Evalúa la desviación estándar del rendimiento. Identifica instituciones con comportamientos altamente volátiles que reflejan ecosistemas críticos.
 
-### 👨‍🏫 3. Sobrecarga Docente
+### 👨‍🏫 2. Sobrecarga Docente
 * **Propósito:** Ranking anual de los 10 establecimientos con mayor colapso en la distribución de su planta docente.
 
-### 🌍 4. Auditoría Territorial (El Mapa Termográfico)
+### 🌍 3. Auditoría Territorial (El Mapa Termográfico)
 
 * **Propósito:** Traduce más de 120,000 registros tabulares en un radar espacial interactivo utilizando `PyDeck` en modo de alto contraste (`Light Mode`).
 
