@@ -49,6 +49,16 @@ Para garantizar el procesamiento in-memory de bases de datos masivas sin latenci
 * **Motor Geoespacial:** `PyDeck` (Cartografía termográfica en capa *Light Mode*).
 * **Consultas Históricas (Pre-procesamiento):** `DuckDB`
 
+
+## 📊 Presentación de la Arquitectura
+
+Puedes explorar la visión interactiva, las terminales de auditoría y la estructura del Data Lake de este proyecto en nuestra presentación web.
+
+👉 [**Abrir Presentación de SUR DAO (HTML)**](./presentacion_surdao.html)
+
+*(Nota: Si descargas el repositorio, simplemente haz doble clic en el archivo `presentacion_surdao.html` para abrirlo en tu navegador y usar las flechas del teclado para navegar).*
+
+> **Transparencia y Origen de Datos:** Nuestra infraestructura no inventa los datos, procesa lo que ya existe. Todos los registros, metadatos y variables utilizadas en esta Fase 0 provienen pública y directamente del portal de [Datos Abiertos del Ministerio de Educación (datosabiertos.mineduc.cl)](https://datosabiertos.mineduc.cl/).
 ## 🗄️ Fuentes de Datos (Data Lake)
 
 <details>
