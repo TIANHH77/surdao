@@ -28,29 +28,11 @@ st.markdown(
 
 st.divider()
 # Creamos las pestañas para unificar la app
-tab1, tab2, tab3, tab4 = st.tabs(["📉 Fuga", "⚠️ Riesgo", "👨‍🏫 Sobrecarga", "🌍 Auditoría Territorial"])
+tab1, tab2, tab3 = st.tabs([ "⚠️ Riesgo", "👨‍🏫 Sobrecarga", "🌍 Auditoría Territorial"])
+
 
 # ==========================================
-# PESTAÑA 1: FUGA DE TALENTOS
-# ==========================================
-with tab1:
-    st.markdown("### Evolución Histórica de la Fuga de Talentos (2012 - 2023)")
-    if st.button("🔥 Generar Radiografía Histórica", use_container_width=True, key="btn_fuga"):
-        try:
-            df_fuga = pd.read_csv("data/fuga_talentos.csv")
-            
-            if "Año" in df_fuga.columns:
-                df_fuga = df_fuga.set_index("Año")
-                
-            col1, col2 = st.columns(2)
-            col1.line_chart(df_fuga["Tasa de Fuga (%)"], color="#FF4B4B")
-            col2.bar_chart(df_fuga["Talentos Fugados"], color="#1f77b4")
-            st.dataframe(df_fuga, use_container_width=True)
-        except Exception as e:
-            st.error(f"Error al cargar la matriz de fuga: {e}")
-
-# ==========================================
-# PESTAÑA 2: ESCÁNER DE RIESGO
+# PESTAÑA 1: ESCÁNER DE RIESGO
 # ==========================================
 with tab2:
     anio_riesgo = st.selectbox("Año a escanear:", [str(y) for y in range(2025, 2011, -1)])
@@ -65,7 +47,7 @@ with tab2:
             st.warning(f"No se encontró el escáner de riesgo para el año {anio_riesgo}. Verifica la carpeta 'data/'.")
 
 # ==========================================
-# PESTAÑA 3: CRISIS DE TALENTO DOCENTE
+# PESTAÑA 2: CRISIS DE TALENTO DOCENTE
 # ==========================================
 with tab3:
     st.markdown("### 👨‍🏫 Sobrecarga Docente: La Falla Estructural")
@@ -108,7 +90,7 @@ with tab3:
 
 # # ==========================================
 # ==========================================
-# PESTAÑA 4: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
+# PESTAÑA 3: AUDITORÍA TERRITORIAL (MAPA INTELIGENTE Y TOP 50)
 # ==========================================
 with tab4:
     st.markdown("### 🌍 Mapa de Calor: Distribución de Presión Estructural")
