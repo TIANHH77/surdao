@@ -11,7 +11,7 @@
         /* 1. SETUP BASE */
         * { box-sizing: border-box; }
         body {
-            background-color: #2b2b2b;
+            background-color: #0a0a0a; /* Fondo exterior aún más oscuro */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,13 +23,13 @@
         .slide-container {
             width: 1280px;
             height: 720px;
-            background-color: #ffffff;
+            background-color: #121212; /* NEGRO ELEGANTE PARA LAS DIAPOSITIVAS */
             position: absolute;
             display: flex;
             flex-direction: column;
             padding: 60px;
             font-family: 'Urbanist', sans-serif;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
             opacity: 0;
             transition: opacity 0.4s ease-in-out;
             pointer-events: none;
@@ -41,21 +41,22 @@
             z-index: 10;
         }
 
-        /* 1.1 BACKGROUND DESIGN */
+        /* 1.1 BACKGROUND DESIGN (Gradiente sutil oscuro) */
         .slide-container::before {
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 90% 10%, rgba(46, 160, 67, 0.05) 0%, transparent 40%),
-                        linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,242,245,1) 100%);
+            /* Un toque verde sutil en la esquina para SUR DAO */
+            background: radial-gradient(circle at 90% 10%, rgba(46, 160, 67, 0.15) 0%, transparent 40%),
+                        linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
             z-index: 0;
         }
 
         .slide-container > * { position: relative; z-index: 1; }
 
-        /* 2. TYPOGRAPHY */
-        h1, h2, h3 { color: #1a1a1a; font-weight: 700; margin: 0; }
-        p, li { color: #4a5568; font-family: 'Arimo', sans-serif; font-size: 22px; line-height: 1.6; }
+        /* 2. TYPOGRAPHY (Cambiado a blanco/claro para contraste) */
+        h1, h2, h3 { color: #ffffff; font-weight: 700; margin: 0; }
+        p, li { color: #cbd5e1; font-family: 'Arimo', sans-serif; font-size: 22px; line-height: 1.6; }
 
         .slide-title {
             font-size: 42px;
@@ -64,60 +65,69 @@
             padding-left: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: #ffffff;
         }
 
         /* 3. LAYOUTS */
         .title-layout { text-align: center; justify-content: center; height: 100%; align-items: center; }
         .title-layout h1 { font-size: 72px; line-height: 1.1; margin-bottom: 20px; }
-        .title-layout .subtitle { font-size: 28px; color: #718096; max-width: 900px; margin: 0 auto; }
+        .title-layout .subtitle { font-size: 28px; color: #94a3b8; max-width: 900px; margin: 0 auto; }
         .badge { background: #FF4B4B; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 18px; display: inline-block; margin-top: 30px; }
 
-        .tiled-content { display: flex; gap: 30px; width: 100%; height: 100%; align-items: center;}
+        .tiled-content { display: flex; gap: 30px; width: 100%; height: 100%; align-items: center; justify-content: center;}
+        
+        /* Cajas de contenido adaptadas a fondo oscuro */
         .tile {
             flex: 1;
-            background: #f8fafc;
+            max-width: 500px;
+            background: #1e1e1e;
             padding: 35px;
             border-radius: 15px;
             border-top: 5px solid #2ea043;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        .tile h3 { font-size: 28px; margin-bottom: 15px; color: #1a1a1a; }
+        .tile h3 { font-size: 28px; margin-bottom: 15px; color: #ffffff; }
+        .tile p { color: #94a3b8; }
+        .tile b { color: #ffffff; }
 
-        /* SEMAFORO */
+        /* SEMAFORO (Ajustado para modo oscuro) */
         .semaforo { display: flex; flex-direction: column; gap: 20px; }
-        .nivel { padding: 20px; border-radius: 10px; display: flex; align-items: center; gap: 20px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .nivel { padding: 20px; border-radius: 10px; display: flex; align-items: center; gap: 20px; background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .nivel b { color: #ffffff; }
+        .nivel div { color: #94a3b8; }
         .dot { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
         .dot.verde { background: #2ecc71; }
         .dot.amarillo { background: #f1c40f; }
         .dot.rojo { background: #e74c3c; }
 
-        .nav-hints { position: absolute; bottom: 20px; right: 20px; font-size: 14px; color: #a0aec0; z-index: 20; }
+        .nav-hints { position: absolute; bottom: 20px; right: 20px; font-size: 14px; color: #64748b; z-index: 20; }
     </style>
 </head>
 <body>
 
     <div class="slide-container active title-layout" id="slide-1">
-        <h1 style="font-size: 100px;">🐋</h1>
+        <img src="file:///C:/PROYECTOS/streamlit/assets/surdao.svg" alt="SUR DAO Logo" style="width: 250px; margin-bottom: 30px;">
+        
         <h1>Centro de Mando:<br>Auditoría Ciudadana Territorial</h1>
-        <p class="subtitle">Infraestructura descentralizada de seguimiento de trayectorias. Fase 0: Sistema Educativo Chileno.</p>
-        <div class="badge">Fase 0 Activa</div>
+        <p class="subtitle">Infraestructura descentralizada de seguimiento.</p>
+        <div class="badge">Capa 0: Educación</div>
     </div>
 
-    <div class="slide-container" id="slide-2">
+    <div class="slide-container" id="slide-2" style="padding-top: 140px;">
         <h2 class="slide-title">⚙️ Arquitectura y Stack Tecnológico</h2>
-        <p>Procesamiento in-memory de bases de datos masivas sin latencia en la nube. No inventamos los datos, procesamos registros oficiales del MINEDUC.</p>
-        <div class="tiled-content" style="margin-top: 40px;">
-            <div class="tile" style="border-color: #FF4B4B;">
+        <p>Procesamiento in-memory de bases de datos masivas sin latencia en la nube. No inventamos los datos, procesamos registros públicos y oficiales.</p>
+        <div class="tiled-content" style="margin-top: 40px; align-items: flex-start;">
+            <div class="tile" style="border-color: #FF4B4B; max-width: none;">
                 <h3>Frontend / UI</h3>
-                <p><b>Streamlit</b><br>Interfaces interactivas y despliegue rápido para análisis de datos en tiempo real.</p>
+                <p><b>Streamlit</b><br>Interfaces interactivas y despliegue rápido para análisis en tiempo real.</p>
             </div>
-            <div class="tile" style="border-color: #1f77b4;">
+            <div class="tile" style="border-color: #1f77b4; max-width: none;">
                 <h3>Procesamiento</h3>
-                <p><b>Pandas + PyArrow</b><br>Motor nativo de alto rendimiento para el manejo masivo de archivos .parquet.</p>
+                <p><b>Pandas + PyArrow</b><br>Motor nativo para manejo masivo de archivos .parquet.</p>
             </div>
-            <div class="tile" style="border-color: #9D4EDD;">
+            <div class="tile" style="border-color: #9D4EDD; max-width: none;">
                 <h3>Geoespacial</h3>
-                <p><b>PyDeck + DuckDB</b><br>Cartografía termográfica inmersiva y pre-procesamiento histórico eficiente.</p>
+                <p><b>PyDeck + DuckDB</b><br>Cartografía inmersiva y pre-procesamiento histórico eficiente.</p>
             </div>
         </div>
     </div>
@@ -125,10 +135,6 @@
     <div class="slide-container" id="slide-3">
         <h2 class="slide-title">🖥️ Terminales de Auditoría</h2>
         <div class="tiled-content">
-            <div class="tile">
-                <h3>📉 Fuga Histórica</h3>
-                <p>Evolución estructural de la pérdida de alumnos de excelencia académica (2012-2023). La fuga de talentos del sistema.</p>
-            </div>
             <div class="tile">
                 <h3>⚠️ Escáner de Riesgo</h3>
                 <p>Detecta anomalías y evalúa la desviación estándar. Identifica ecosistemas críticos mediante la volatilidad institucional.</p>
@@ -141,10 +147,13 @@
     </div>
 
     <div class="slide-container" id="slide-4">
-        <h2 class="slide-title">🌍 Auditoría Territorial: El Semáforo de Presión</h2>
+        <h2 class="slide-title">🌍 Auditoría Territorial: Todos los colegios de Chile (2012-2024)</h2>
         <div style="display: flex; gap: 40px; height: 100%;">
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p>Radar espacial interactivo que traduce más de <b>120,000 registros</b> utilizando PyDeck en capa Light Mode para exponer el colapso estructural.</p>
+                <p>Radar espacial interactivo que mapea la totalidad del territorio nacional utilizando PyDeck en capa Light Mode para exponer la realidad.</p>
+                <p style="margin-top: 20px; font-weight: bold; color: #e74c3c; font-size: 26px;">
+                    🎯 Foco en los 50 casos con mayor necesidad a nivel país.
+                </p>
             </div>
             <div style="flex: 1;" class="semaforo">
                 <div class="nivel">
@@ -157,7 +166,7 @@
                 </div>
                 <div class="nivel">
                     <div class="dot rojo"></div>
-                    <div><b>Colapso Estructural (Ratio > 30)</b><br>El sistema supera los límites. Espacios de contención, no de aprendizaje.</div>
+                    <div><b>Situación actual fuera de radar (Ratio > 30)</b><br>El sistema supera los límites. Espacios de contención, no de aprendizaje.</div>
                 </div>
             </div>
         </div>
@@ -165,11 +174,14 @@
 
     <div class="slide-container title-layout" id="slide-5">
         <h2>La Visión: Hacia la Gobernanza Descentralizada</h2>
-        <p class="subtitle" style="margin-top: 30px;">Este dashboard es solo la auditoría de la realidad (Fase 0). El sistema no se arregla solo mirándolo.</p>
-        <p style="margin-top: 30px; font-weight: bold; color: #FF4B4B;">Próximo Despliegue: Fase 2 (Arquitectura de Espiral)</p>
-        <p>Buscamos reconocer ("Proof of Contribution") el trabajo invisible de quienes sostienen la red educativa desde la <i>Capa de Sombra</i>.</p>
-        <div style="margin-top: 50px; font-style: italic; color: #a0a0a0;">
-            "No pedimos permiso para auditar, construimos los datos que exponen la realidad. El código es libre y el control territorial es ciudadano."
+        
+        <div style="background: #1e1e1e; padding: 40px; border-radius: 15px; margin-top: 40px; width: 100%; text-align: left; border-left: 5px solid #2ea043; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <p style="margin-bottom: 20px;"><b>Capa 0:</b> El lanzamiento actual mapea exclusivamente el Sistema Educativo.</p>
+            <p style="margin-bottom: 20px;"><b>Próximas Integraciones:</b> Escalaremos la arquitectura para procesar datos de Salud y otras bases públicas críticas del territorio nacional.</p>
+            <p style="font-size: 26px; color: #38bdf8; font-weight: bold; margin-top: 30px;">
+                Objetivo Final: Consolidación de la DAO
+            </p>
+            <p style="margin-top: 10px; color: #cbd5e1;">Reconocer el trabajo invisible de la red mediante economías recíprocas ("Proof of Contribution"). El código es libre y el control territorial es ciudadano.</p>
         </div>
     </div>
 
