@@ -11,7 +11,7 @@
         /* 1. SETUP BASE */
         * { box-sizing: border-box; }
         body {
-            background-color: #0a0a0a; /* Fondo exterior aún más oscuro */
+            background-color: #0a0a0a; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,7 +23,7 @@
         .slide-container {
             width: 1280px;
             height: 720px;
-            background-color: #121212; /* NEGRO ELEGANTE PARA LAS DIAPOSITIVAS */
+            background-color: #121212;
             position: absolute;
             display: flex;
             flex-direction: column;
@@ -41,12 +41,11 @@
             z-index: 10;
         }
 
-        /* 1.1 BACKGROUND DESIGN (Gradiente sutil oscuro) */
+        /* 1.1 BACKGROUND DESIGN */
         .slide-container::before {
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            /* Un toque verde sutil en la esquina para SUR DAO */
             background: radial-gradient(circle at 90% 10%, rgba(46, 160, 67, 0.15) 0%, transparent 40%),
                         linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
             z-index: 0;
@@ -54,7 +53,7 @@
 
         .slide-container > * { position: relative; z-index: 1; }
 
-        /* 2. TYPOGRAPHY (Cambiado a blanco/claro para contraste) */
+        /* 2. TYPOGRAPHY */
         h1, h2, h3 { color: #ffffff; font-weight: 700; margin: 0; }
         p, li { color: #cbd5e1; font-family: 'Arimo', sans-serif; font-size: 22px; line-height: 1.6; }
 
@@ -76,7 +75,6 @@
 
         .tiled-content { display: flex; gap: 30px; width: 100%; height: 100%; align-items: center; justify-content: center;}
         
-        /* Cajas de contenido adaptadas a fondo oscuro */
         .tile {
             flex: 1;
             max-width: 500px;
@@ -90,7 +88,7 @@
         .tile p { color: #94a3b8; }
         .tile b { color: #ffffff; }
 
-        /* SEMAFORO (Ajustado para modo oscuro) */
+        /* SEMAFORO */
         .semaforo { display: flex; flex-direction: column; gap: 20px; }
         .nivel { padding: 20px; border-radius: 10px; display: flex; align-items: center; gap: 20px; background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .nivel b { color: #ffffff; }
@@ -101,18 +99,24 @@
         .dot.rojo { background: #e74c3c; }
 
         .nav-hints { position: absolute; bottom: 20px; right: 20px; font-size: 14px; color: #64748b; z-index: 20; }
+        
+        /* ESTILOS PARA LA LISTA DE DATOS */
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 0; padding: 0; list-style: none; }
+        .data-grid li { background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 8px; font-size: 18px; display: flex; align-items: center; border-left: 3px solid #1f77b4; }
+        .data-grid li span { color: #38bdf8; font-weight: bold; margin-left: 10px; }
     </style>
 </head>
 <body>
 
+    <!-- DIAPOSITIVA 1: Título -->
     <div class="slide-container active title-layout" id="slide-1">
         <img src="file:///C:/PROYECTOS/streamlit/assets/surdao.svg" alt="SUR DAO Logo" style="width: 250px; margin-bottom: 30px;">
-        
         <h1>Centro de Mando:<br>Auditoría Ciudadana Territorial</h1>
         <p class="subtitle">Infraestructura descentralizada de seguimiento.</p>
         <div class="badge">Capa 0: Educación</div>
     </div>
 
+    <!-- DIAPOSITIVA 2: Arquitectura -->
     <div class="slide-container" id="slide-2" style="padding-top: 140px;">
         <h2 class="slide-title">⚙️ Arquitectura y Stack Tecnológico</h2>
         <p>Procesamiento in-memory de bases de datos masivas sin latencia en la nube. No inventamos los datos, procesamos registros públicos y oficiales.</p>
@@ -132,6 +136,7 @@
         </div>
     </div>
 
+    <!-- DIAPOSITIVA 3: Terminales -->
     <div class="slide-container" id="slide-3">
         <h2 class="slide-title">🖥️ Terminales de Auditoría</h2>
         <div class="tiled-content">
@@ -146,8 +151,9 @@
         </div>
     </div>
 
+    <!-- DIAPOSITIVA 4: El Mapa -->
     <div class="slide-container" id="slide-4">
-        <h2 class="slide-title">🌍 Auditoría Territorial: Todos los colegios de Chile (2012-2024)</h2>
+        <h2 class="slide-title">🌍 Auditoría Territorial: Colegios de Chile (2012-2024)</h2>
         <div style="display: flex; gap: 40px; height: 100%;">
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
                 <p>Radar espacial interactivo que mapea la totalidad del territorio nacional utilizando PyDeck en capa Light Mode para exponer la realidad.</p>
@@ -172,7 +178,28 @@
         </div>
     </div>
 
-    <div class="slide-container title-layout" id="slide-5">
+    <!-- DIAPOSITIVA 5: Data Lake (NUEVA) -->
+    <div class="slide-container" id="slide-5">
+        <h2 class="slide-title">🗄️ Fuentes de Datos (Data Lake)</h2>
+        <p style="margin-bottom: 30px;">Nuestra infraestructura no inventa los datos, procesa y transparenta lo que ya existe. La información utilizada en esta <b>Fase 0</b> proviene íntegramente de registros oficiales del MINEDUC:</p>
+        
+        <ul class="data-grid">
+            <li>Rendimiento académico por estudiante <span>(2002 - 2025)</span></li>
+            <li>Matrícula por estudiante <span>(2004 - 2025)</span></li>
+            <li>Notas de media y percentil <span>(1990 - 2023)</span></li>
+            <li>Alumnos preferentes y prioritarios SEP <span>(2008 - 2025)</span></li>
+            <li>Sistema de Admisión Escolar (SAE) <span>(2016 - 2023)</span></li>
+            <li>Directorio de Establecimientos <span>(1992 - 2025)</span></li>
+        </ul>
+
+        <div style="margin-top: 40px; text-align: center; background: rgba(46, 204, 113, 0.1); padding: 20px; border-radius: 10px; border: 1px dashed #2ecc71;">
+            <p style="margin: 0; font-size: 18px; color: #94a3b8;">Para auditar la matriz de variables completa y la bibliografía técnica, consulta:<br>
+            <b style="color: #2ecc71; font-size: 24px;">REFERENCIAS_SURDAO.xlsx</b></p>
+        </div>
+    </div>
+
+    <!-- DIAPOSITIVA 6: Visión y DAO -->
+    <div class="slide-container title-layout" id="slide-6">
         <h2>La Visión: Hacia la Gobernanza Descentralizada</h2>
         
         <div style="background: #1e1e1e; padding: 40px; border-radius: 15px; margin-top: 40px; width: 100%; text-align: left; border-left: 5px solid #2ea043; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
