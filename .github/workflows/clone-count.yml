@@ -81,8 +81,10 @@ jobs:
             --arg description "${{ github.repository }} clone statistics" \
             --rawfile content clone.json \
             '{description: $description, files: {"clone.json": {content: $content}}}' > post_clone.json
-          curl --silent --show-error --fail -X PATCH \
+          if ! curl --silent --show-error --fail -X PATCH \
             -H "Authorization: token ${AUTH_TOKEN}" \
             -H "Content-Type: application/json" \
             -d @post_clone.json \
-            "https://api.github.com/gists/${GIST_ID}" > /dev/null
+            "https://api.github.com/gists/${GIST_ID}" > /dev/null; then
+            echo "Warning: could not update gist ${GIST_ID}; clone data was fetched but badge cache was not updated."
+          fi
